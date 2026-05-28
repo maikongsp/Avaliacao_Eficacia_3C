@@ -2,14 +2,11 @@ services:
   - type: web
     name: avaliacao-treinamento-3coracoes
     env: node
+    plan: free
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATA_DIR
-        value: /opt/render/project/data
-    disk:
-      name: sqlite-data
-      mountPath: /opt/render/project/data
-      sizeGB: 1
+        value: /tmp/data
