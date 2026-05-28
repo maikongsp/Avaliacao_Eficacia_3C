@@ -7,7 +7,7 @@ import { levelLabel, metDesiredLevel, type SkillLevel } from '@/lib/ranges';
 
 const LEVEL_BADGE: Record<string, string> = {
   REATIVO: 'bg-red-100 text-red-700 border-red-200',
-  DEPENDENTE: 'bg-orange-100 text-orange-700 border-orange-200',
+  DEPENDENTE: 'bg-brand-100 text-brand-700 border-brand-200',
   INDEPENDENTE: 'bg-blue-100 text-blue-700 border-blue-200',
   INTERDEPENDENTE: 'bg-green-100 text-green-700 border-green-200',
 };
@@ -61,14 +61,14 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
 
   if (loading) return (
     <div className="flex justify-center py-16">
-      <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+      <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
     </div>
   );
 
   if (error || !data) return (
     <div className="text-center py-16">
       <p className="text-gray-500">{error || 'Erro ao carregar.'}</p>
-      <Link href="/avaliacoes" className="mt-2 inline-block text-orange-600 hover:underline text-sm">← Voltar</Link>
+      <Link href="/avaliacoes" className="mt-2 inline-block text-brand-600 hover:underline text-sm">← Voltar</Link>
     </div>
   );
 
@@ -107,7 +107,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
           <div>
             <p className="text-gray-400 text-xs mb-0.5">Resultado Geral</p>
             <p className="font-semibold text-lg">
-              <span className={metCount === collaborators.length ? 'text-green-600' : metCount > 0 ? 'text-orange-500' : 'text-red-500'}>
+              <span className={metCount === collaborators.length ? 'text-green-600' : metCount > 0 ? 'text-brand-500' : 'text-red-500'}>
                 {metCount}/{collaborators.length}
               </span>
               <span className="text-xs font-normal text-gray-400 ml-1">atingiram o nível</span>
@@ -155,7 +155,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
                     </td>
                     <td className="px-4 py-3 text-center text-gray-600">{c.correct_answers}/{c.total_questions}</td>
                     <td className="px-4 py-3 text-center font-semibold">
-                      <span className={c.percentage >= 0.7 ? 'text-green-600' : c.percentage >= 0.5 ? 'text-orange-500' : 'text-red-500'}>
+                      <span className={c.percentage >= 0.7 ? 'text-green-600' : c.percentage >= 0.5 ? 'text-brand-500' : 'text-red-500'}>
                         {formatPct(c.percentage)}
                       </span>
                     </td>

@@ -33,7 +33,7 @@ export default function RelatoriosPage() {
 
   if (!data) return (
     <div className="flex justify-center py-16">
-      <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+      <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
     </div>
   );
 
@@ -96,12 +96,12 @@ export default function RelatoriosPage() {
               <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
               <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v: number) => `${v}%`} />
-              <Bar dataKey="Acertos (%)" fill="#ea580c" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="Acertos (%)" fill="#C41230" radius={[0, 4, 4, 0]} />
               <Bar dataKey="Atingiram Nível (%)" fill="#22c55e" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="flex gap-4 text-xs text-gray-500 mt-2 justify-center">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-orange-500 inline-block" />% Acerto médio</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-brand-500 inline-block" />% Acerto médio</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-green-500 inline-block" />% Atingiram nível</span>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function RelatoriosPage() {
                 <XAxis dataKey="category" tick={{ fontSize: 9 }} />
                 <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="gap" name="GAP (%)" fill="#f97316" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="gap" name="GAP (%)" fill="#98531a" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -175,14 +175,14 @@ export default function RelatoriosPage() {
                     <td className="py-2 pr-4 text-center text-gray-600">{u.total}</td>
                     <td className="py-2 pr-4 text-center text-gray-600">{u.met}/{u.total}</td>
                     <td className="py-2 pr-4 text-center">
-                      <span className={`font-semibold ${u.pct >= 70 ? 'text-green-600' : u.pct >= 50 ? 'text-orange-500' : 'text-red-500'}`}>
+                      <span className={`font-semibold ${u.pct >= 70 ? 'text-green-600' : u.pct >= 50 ? 'text-brand-500' : 'text-red-500'}`}>
                         {u.pct}%
                       </span>
                     </td>
                     <td className="py-2">
                       <div className="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full ${u.pct >= 70 ? 'bg-green-500' : u.pct >= 50 ? 'bg-orange-400' : 'bg-red-400'}`}
+                          className={`h-full rounded-full ${u.pct >= 70 ? 'bg-green-500' : u.pct >= 50 ? 'bg-brand-400' : 'bg-red-400'}`}
                           style={{ width: `${u.pct}%` }}
                         />
                       </div>

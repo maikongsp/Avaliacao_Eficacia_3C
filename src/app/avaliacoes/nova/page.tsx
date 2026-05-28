@@ -265,8 +265,8 @@ export default function NovaAvaliacaoPage() {
               onClick={() => step > s.n && setStep(s.n)}
               className={cn(
                 'w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center',
-                step === s.n ? 'bg-orange-600 text-white' :
-                  step > s.n ? 'bg-orange-100 text-orange-700 cursor-pointer' :
+                step === s.n ? 'bg-brand-600 text-white' :
+                  step > s.n ? 'bg-brand-100 text-brand-700 cursor-pointer' :
                     'bg-gray-100 text-gray-400'
               )}
             >{s.n}</button>
@@ -289,7 +289,7 @@ export default function NovaAvaliacaoPage() {
                 onChange={e => setEvaluatorEmail(e.target.value)}
                 type="email"
                 placeholder="avaliador@3coracoes.com.br"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
               />
             </div>
             <div className="col-span-2">
@@ -298,7 +298,7 @@ export default function NovaAvaliacaoPage() {
                 value={evaluatorName}
                 onChange={e => setEvaluatorName(e.target.value)}
                 placeholder="Nome completo"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
               />
             </div>
             <div>
@@ -307,7 +307,7 @@ export default function NovaAvaliacaoPage() {
                 value={evaluationDate}
                 onChange={e => setEvaluationDate(e.target.value)}
                 type="date"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
               />
             </div>
             <div>
@@ -316,7 +316,7 @@ export default function NovaAvaliacaoPage() {
                 value={trainingDate}
                 onChange={e => setTrainingDate(e.target.value)}
                 type="date"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
               />
             </div>
           </div>
@@ -326,7 +326,7 @@ export default function NovaAvaliacaoPage() {
             <select
               value={selectedUnit?.name ?? ''}
               onChange={e => setSelectedUnit(units.find(u => u.name === e.target.value) ?? null)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
             >
               <option value="">Selecione a unidade...</option>
               {units.map(u => <option key={u.name} value={u.name}>{u.name}</option>)}
@@ -338,7 +338,7 @@ export default function NovaAvaliacaoPage() {
             <select
               value={selectedTraining?.id ?? ''}
               onChange={handleTrainingChange}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
             >
               <option value="">Selecione o treinamento...</option>
               {Object.entries(categoryGroups).map(([cat, ts]) => (
@@ -350,9 +350,9 @@ export default function NovaAvaliacaoPage() {
           </div>
 
           {selectedTraining && questions.length > 0 && (
-            <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
-              <p className="text-xs font-medium text-orange-700 mb-1">Questões deste treinamento ({questions.length}):</p>
-              <ul className="text-xs text-orange-600 space-y-1">
+            <div className="bg-brand-50 border border-brand-100 rounded-lg p-3">
+              <p className="text-xs font-medium text-brand-700 mb-1">Questões deste treinamento ({questions.length}):</p>
+              <ul className="text-xs text-brand-600 space-y-1">
                 {questions.map(q => <li key={q.id} className="truncate">• {q.text}</li>)}
               </ul>
             </div>
@@ -362,7 +362,7 @@ export default function NovaAvaliacaoPage() {
             <button
               onClick={() => setStep(2)}
               disabled={!step1Valid}
-              className="bg-orange-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="bg-brand-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Próximo →
             </button>
@@ -381,7 +381,7 @@ export default function NovaAvaliacaoPage() {
               {collaborators.length < 12 && (
                 <button
                   onClick={() => setShowEmpSearch(v => !v)}
-                  className="flex items-center gap-1.5 text-sm text-orange-600 hover:text-orange-700 font-medium"
+                  className="flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium"
                 >
                   <Plus size={15} /> Adicionar colaborador
                 </button>
@@ -389,7 +389,7 @@ export default function NovaAvaliacaoPage() {
             </div>
 
             {showEmpSearch && (
-              <div className="mb-4 border border-orange-200 rounded-lg p-3 bg-orange-50">
+              <div className="mb-4 border border-brand-200 rounded-lg p-3 bg-brand-50">
                 <div className="relative mb-2">
                   <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
@@ -397,7 +397,7 @@ export default function NovaAvaliacaoPage() {
                     value={empSearch}
                     onChange={e => setEmpSearch(e.target.value)}
                     placeholder="Buscar colaborador por nome ou matrícula..."
-                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white"
                   />
                 </div>
                 <div className="max-h-48 overflow-y-auto space-y-1">
@@ -406,7 +406,7 @@ export default function NovaAvaliacaoPage() {
                       key={e.id}
                       type="button"
                       onClick={() => addCollaborator(e)}
-                      className="w-full text-left px-3 py-2 text-sm rounded-lg bg-white hover:bg-orange-100 border border-gray-100"
+                      className="w-full text-left px-3 py-2 text-sm rounded-lg bg-white hover:bg-brand-100 border border-gray-100"
                     >
                       <span className="font-medium">{e.name}</span>
                       <span className="text-gray-400 ml-2 text-xs">{e.registration} · {e.position}</span>
@@ -418,7 +418,7 @@ export default function NovaAvaliacaoPage() {
                       <button
                         type="button"
                         onClick={() => addCollaborator()}
-                        className="w-full text-left px-3 py-2 text-sm rounded-lg bg-white hover:bg-orange-100 border border-dashed border-orange-300 text-orange-600"
+                        className="w-full text-left px-3 py-2 text-sm rounded-lg bg-white hover:bg-brand-100 border border-dashed border-brand-300 text-brand-600"
                       >
                         + Adicionar &quot;{empSearch}&quot; manualmente
                       </button>
@@ -446,7 +446,7 @@ export default function NovaAvaliacaoPage() {
                   onClick={() => updateCollab(ci, { expanded: !collab.expanded })}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold flex items-center justify-center">
                       {ci + 1}
                     </div>
                     <div>
@@ -480,7 +480,7 @@ export default function NovaAvaliacaoPage() {
                           value={collab.employee_name}
                           onChange={e => updateCollab(ci, { employee_name: e.target.value })}
                           placeholder="Nome completo"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
                         />
                       </div>
                     )}
@@ -497,7 +497,7 @@ export default function NovaAvaliacaoPage() {
                               'px-3 py-1.5 text-xs rounded-lg font-medium border transition-all',
                               collab.desired_level === l
                                 ? l === 'REATIVO' ? 'bg-red-600 text-white border-red-600'
-                                  : l === 'DEPENDENTE' ? 'bg-orange-600 text-white border-orange-600'
+                                  : l === 'DEPENDENTE' ? 'bg-brand-600 text-white border-brand-600'
                                     : l === 'INDEPENDENTE' ? 'bg-blue-600 text-white border-blue-600'
                                       : 'bg-green-600 text-white border-green-600'
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -574,7 +574,7 @@ export default function NovaAvaliacaoPage() {
                           onChange={e => updateCollab(ci, { ineffective_reason: e.target.value })}
                           placeholder="Justifique a não eficácia..."
                           rows={2}
-                          className="mt-2 w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-400"
+                          className="mt-2 w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
                         />
                       )}
                     </div>
@@ -589,7 +589,7 @@ export default function NovaAvaliacaoPage() {
             <button
               onClick={() => setStep(3)}
               disabled={!step2Valid}
-              className="bg-orange-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="bg-brand-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Revisar →
             </button>
@@ -655,7 +655,7 @@ export default function NovaAvaliacaoPage() {
             <button
               onClick={submit}
               disabled={saving}
-              className="bg-orange-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-orange-700 disabled:opacity-50 transition-colors"
+              className="bg-brand-600 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
               {saving ? 'Salvando...' : 'Salvar Avaliação'}
             </button>

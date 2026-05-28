@@ -46,14 +46,14 @@ export default function ColaboradoresPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Buscar por nome ou matrícula..."
-          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
         />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+            <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -72,7 +72,7 @@ export default function ColaboradoresPage() {
                   <td className="px-4 py-3 text-gray-600">{e.position}</td>
                   <td className="px-4 py-3 text-gray-500">{e.section}</td>
                   <td className="px-4 py-3">
-                    <span className="bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-full">
+                    <span className="bg-brand-50 text-brand-700 text-xs px-2 py-0.5 rounded-full">
                       {e.unit_name}
                     </span>
                   </td>

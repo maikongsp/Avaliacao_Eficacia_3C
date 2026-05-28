@@ -11,7 +11,7 @@ import { levelLabel } from '@/lib/ranges';
 
 const LEVEL_COLORS: Record<string, string> = {
   REATIVO: '#ef4444',
-  DEPENDENTE: '#f97316',
+  DEPENDENTE: '#98531a',
   INDEPENDENTE: '#3b82f6',
   INTERDEPENDENTE: '#22c55e',
 };
@@ -36,7 +36,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'orange' }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string;
 }) {
   const colors: Record<string, string> = {
-    orange: 'bg-orange-50 text-orange-600',
+    orange: 'bg-brand-50 text-brand-600',
     green: 'bg-green-50 text-green-600',
     blue: 'bg-blue-50 text-blue-600',
     red: 'bg-red-50 text-red-600',
@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+      <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
     </div>
   );
 
@@ -95,7 +95,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/avaliacoes/nova"
-          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
         >
           <Plus size={16} />
           Nova Avaliação
@@ -133,7 +133,7 @@ export default function DashboardPage() {
                 <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="pct" fill="#ea580c" radius={[0, 4, 4, 0]} name="% Acerto" />
+                <Bar dataKey="pct" fill="#C41230" radius={[0, 4, 4, 0]} name="% Acerto" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -180,7 +180,7 @@ export default function DashboardPage() {
                     <td className="py-2 pr-4 text-center text-gray-600">{u.total}</td>
                     <td className="py-2 pr-4 text-center text-gray-600">{u.met}/{u.total}</td>
                     <td className="py-2 text-center">
-                      <span className={`font-semibold ${u.avg_pct >= 0.7 ? 'text-green-600' : u.avg_pct >= 0.5 ? 'text-orange-500' : 'text-red-500'}`}>
+                      <span className={`font-semibold ${u.avg_pct >= 0.7 ? 'text-green-600' : u.avg_pct >= 0.5 ? 'text-brand-500' : 'text-red-500'}`}>
                         {formatPct(u.avg_pct)}
                       </span>
                     </td>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-700">Avaliações Recentes</h3>
-          <Link href="/avaliacoes" className="text-xs text-orange-600 hover:text-orange-700 flex items-center gap-1">
+          <Link href="/avaliacoes" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1">
             Ver todas <ArrowRight size={12} />
           </Link>
         </div>
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                 {data.recent.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4">
-                      <Link href={`/avaliacoes/${r.id}`} className="text-orange-700 hover:underline font-medium">
+                      <Link href={`/avaliacoes/${r.id}`} className="text-brand-700 hover:underline font-medium">
                         {r.training}
                       </Link>
                     </td>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                     <td className="py-2 pr-4 text-gray-600">{formatDate(r.evaluation_date)}</td>
                     <td className="py-2 pr-4 text-center text-gray-600">{r.collaborators}</td>
                     <td className="py-2 text-center font-semibold">
-                      <span className={r.avg_pct >= 70 ? 'text-green-600' : r.avg_pct >= 50 ? 'text-orange-500' : 'text-red-500'}>
+                      <span className={r.avg_pct >= 70 ? 'text-green-600' : r.avg_pct >= 50 ? 'text-brand-500' : 'text-red-500'}>
                         {r.avg_pct ?? 0}%
                       </span>
                     </td>

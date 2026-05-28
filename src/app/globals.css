@@ -1,9 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-brand-dark;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  .brand-gradient {
+    background: linear-gradient(135deg, #C41230 0%, #75152e 100%);
+  }
+  .brand-gradient-warm {
+    background: linear-gradient(135deg, #de0209 0%, #98531a 100%);
   }
 }
