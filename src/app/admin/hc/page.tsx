@@ -3,7 +3,7 @@ import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Lock, Upload, CheckCircle2, XCircle,
-  AlertCircle, FileSpreadsheet, RefreshCw, ChevronDown,
+  AlertCircle, FileSpreadsheet, RefreshCw, ChevronDown, Download,
 } from 'lucide-react';
 
 interface ImportResult {
@@ -19,12 +19,13 @@ interface ImportResult {
 }
 
 export default function AdminHCPage() {
-  const [password, setPassword] = useState('');
-  const [file, setFile]         = useState<File | null>(null);
-  const [sheet, setSheet]       = useState('');
-  const [dragging, setDragging] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [result, setResult]     = useState<ImportResult | null>(null);
+  const [password, setPassword]   = useState('');
+  const [file, setFile]           = useState<File | null>(null);
+  const [sheet, setSheet]         = useState('');
+  const [dragging, setDragging]   = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [result, setResult]       = useState<ImportResult | null>(null);
   const [authError, setAuthError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -33,6 +34,32 @@ export default function AdminHCPage() {
     setResult(null);
     setSheet('');
   };
+
+  async function exportHC() {
+    if (!password) { setAuthError('Informe a senha antes de exportar.'); return; }
+    setAuthError('');
+    setExporting(true);
+    try {
+      const res = await fetch('/api/admin/hc/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.status === 401) { setAuthError('Senha incorreta.'); setExporting(false); return; }
+      if (!res.ok) { setAuthError('Erro ao exportar.'); setExporting(false); return; }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') ?? '';
+      const match = cd.match(/filename="([^"]+)"/);
+      const filename = match?.[1] ?? 'HC_DiretoriaIndustrial.xlsx';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setAuthError('Erro de rede ao exportar.');
+    }
+    setExporting(false);
+  }
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDragging(false);
@@ -81,19 +108,23 @@ export default function AdminHCPage() {
       {/* Password banner */}
       <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-sm text-yellow-800">
         <Lock size={15} className="shrink-0 text-yellow-600" />
-        Acesso restrito — informe a senha de importação antes de enviar o arquivo.
+        Acesso restrito — informe a senha antes de exportar ou importar.
       </div>
 
-      <form onSubmit={submit} className="space-y-5">
+      {/* Export panel */}
+      <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card space-y-4">
+        <h3 className="font-display font-bold text-brand-800 text-sm border-b border-red-50 pb-3 flex items-center gap-2">
+          <Download size={15} className="text-brand-600" /> Exportar planilha atual
+        </h3>
+        <p className="text-xs text-brand-muted">
+          Gera um arquivo <strong>.xlsx</strong> com todos os colaboradores cadastrados — duas abas:
+          <strong> "HC [mês]"</strong> (para reimportação) e <strong>"Detalhe15-Diretoria Industrial"</strong> (resumo por unidade).
+        </p>
 
-        {/* Password */}
-        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card space-y-4">
-          <h3 className="font-display font-bold text-brand-800 text-sm border-b border-red-50 pb-3">
-            Autenticação
-          </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wide mb-1">
-              Senha de importação
+              Senha de exportação
             </label>
             <input
               type="password"
@@ -109,7 +140,29 @@ export default function AdminHCPage() {
               </p>
             )}
           </div>
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={exportHC}
+              disabled={exporting}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-600 text-white rounded-xl font-semibold text-sm hover:bg-green-700 transition-colors disabled:opacity-50 shadow-sm"
+            >
+              {exporting
+                ? <><RefreshCw size={15} className="animate-spin" /> Gerando...</>
+                : <><Download size={15} /> Baixar Excel</>
+              }
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="relative flex items-center gap-3">
+        <div className="flex-1 h-px bg-red-100" />
+        <span className="text-xs text-brand-muted font-medium uppercase tracking-wide">ou importar arquivo atualizado</span>
+        <div className="flex-1 h-px bg-red-100" />
+      </div>
+
+      <form onSubmit={submit} className="space-y-5">
 
         {/* File upload */}
         <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card space-y-4">
