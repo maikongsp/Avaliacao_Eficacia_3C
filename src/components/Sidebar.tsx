@@ -56,7 +56,7 @@ export function Sidebar({ onClose }: SidebarProps) {
         <div className="mt-4 h-px bg-gradient-to-r from-brand-yellow via-brand-yellow/40 to-transparent" />
 
         <p className="mt-3 text-white/80 text-[11px] leading-snug font-medium">
-          Gestão de Avaliação de Treinamento
+          Gestão de Avaliação de Eficácia de Treinamentos
         </p>
       </div>
 
@@ -96,10 +96,9 @@ export function Sidebar({ onClose }: SidebarProps) {
         </p>
       </div>
 
-      {/* Developer credit */}
+      {/* Footer label */}
       <div className="relative px-6 py-3 border-t border-white/10 bg-black/20">
-        <p className="text-white/40 text-[9.5px] leading-snug">Desenvolvido por</p>
-        <p className="text-white/70 text-[10px] font-semibold leading-snug">Ana Clara Costa Santos</p>
+        <p className="text-white/70 text-[10px] font-semibold leading-snug tracking-wide uppercase">Educação Corporativa</p>
       </div>
     </aside>
   );
