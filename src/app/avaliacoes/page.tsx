@@ -79,7 +79,8 @@ export default function AvaliacoesPage() {
             </Link>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-brand-50 border-b border-red-100">
               <tr>
                 {['#', 'Treinamento', 'Categoria', 'Unidade', 'Data', 'Colaboradores', '% Acerto', 'Atingiram Nível', ''].map(h => (
@@ -119,6 +120,7 @@ export default function AvaliacoesPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

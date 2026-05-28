@@ -104,7 +104,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <StatCard icon={ClipboardList} label="Total de Avaliações" value={data.totalEvals} color="red" />
         <StatCard icon={Users} label="Colaboradores Avaliados" value={data.totalCollabs} color="coffee" />
         <StatCard
@@ -122,7 +122,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* By Category */}
         <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
           <h3 className="font-display text-sm font-bold text-brand-800 mb-4">% Acerto por Categoria</h3>
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 
       {/* By Unit */}
       {data.byUnit.length > 0 && (
-        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+        <div className="bg-white rounded-2xl border border-red-100 p-4 sm:p-5 shadow-card">
           <h3 className="font-display text-sm font-bold text-brand-800 mb-4">Desempenho por Unidade</h3>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">
@@ -194,7 +194,7 @@ export default function DashboardPage() {
       )}
 
       {/* Recent evaluations */}
-      <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+      <div className="bg-white rounded-2xl border border-red-100 p-4 sm:p-5 shadow-card">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-sm font-bold text-brand-800">Avaliações Recentes</h3>
           <Link href="/avaliacoes" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 font-medium">
@@ -204,7 +204,7 @@ export default function DashboardPage() {
         {data.recent.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Nenhuma avaliação registrada ainda.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">

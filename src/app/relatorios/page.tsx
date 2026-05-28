@@ -72,7 +72,7 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Summary strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: 'Total de Avaliações', value: data.totalEvals },
           { label: 'Colaboradores Avaliados', value: data.totalCollabs },
@@ -90,7 +90,7 @@ export default function RelatoriosPage() {
       {catData.length > 0 && (
         <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
           <h3 className="font-display font-bold text-brand-800 mb-4">Desempenho por Categoria de Treinamento</h3>
-          <ResponsiveContainer width="100%" height={260}>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={catData} layout="vertical" margin={{ left: 10, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
@@ -107,7 +107,7 @@ export default function RelatoriosPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Level distribution */}
         {pieData.length > 0 && (
           <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
@@ -152,9 +152,10 @@ export default function RelatoriosPage() {
 
       {/* By Unit table */}
       {unitData.length > 0 && (
-        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+        <div className="bg-white rounded-2xl border border-red-100 p-4 sm:p-5 shadow-card">
           <h3 className="font-display font-bold text-brand-800 mb-4">Ranking por Unidade</h3>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="min-w-[480px]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-gray-500">
@@ -192,11 +193,12 @@ export default function RelatoriosPage() {
               </tbody>
             </table>
           </div>
+          </div>
         </div>
       )}
 
       {data.totalEvals === 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-red-100 p-8 sm:p-12 text-center shadow-card">
           <p className="text-gray-400">Nenhuma avaliação registrada ainda.</p>
           <p className="text-sm text-gray-400 mt-1">Os relatórios serão exibidos assim que houver dados.</p>
         </div>

@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function ThreeHearts({ size = 20 }: { size?: number }) {
@@ -27,19 +27,30 @@ const nav = [
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export function Sidebar({ onClose }: SidebarProps) {
   const path = usePathname();
   return (
-    <aside className="w-60 flex flex-col shrink-0 brand-gradient shadow-sidebar relative overflow-hidden">
+    <aside className="w-64 h-full flex flex-col shrink-0 brand-gradient shadow-sidebar relative overflow-hidden">
       {/* Decorative hearts pattern overlay */}
       <div className="absolute inset-0 hearts-pattern pointer-events-none opacity-30" />
 
       {/* Logo / Brand area */}
-      <div className="relative px-6 pt-7 pb-5">
-        {/* Three hearts */}
+      <div className="relative px-6 pt-6 pb-5">
+        {/* Botão fechar — só aparece em mobile */}
+        <button
+          onClick={onClose}
+          className="lg:hidden absolute top-4 right-4 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+          aria-label="Fechar menu"
+        >
+          <X size={18} />
+        </button>
+
         <ThreeHearts size={18} />
 
-        {/* Brand name */}
         <div className="mt-3">
           <p className="text-white font-display text-lg font-bold leading-none tracking-wide">
             3Corações
@@ -49,17 +60,15 @@ export function Sidebar() {
           </p>
         </div>
 
-        {/* Yellow accent line */}
         <div className="mt-4 h-px bg-gradient-to-r from-brand-yellow via-brand-yellow/40 to-transparent" />
 
-        {/* System title */}
         <p className="mt-3 text-white/80 text-[11px] leading-snug font-medium">
           Gestão de Avaliação de Treinamento
         </p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 relative space-y-0.5">
+      <nav className="flex-1 px-3 py-2 relative space-y-0.5 overflow-y-auto">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = path === href || (href !== '/' && path.startsWith(href));
           return (
@@ -67,14 +76,14 @@ export function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150',
                 active
                   ? 'bg-white text-brand-700 shadow-sm'
                   : 'text-red-100 hover:bg-white/12 hover:text-white'
               )}
             >
               <Icon
-                size={17}
+                size={18}
                 strokeWidth={active ? 2.5 : 1.8}
                 className={active ? 'text-brand-600' : ''}
               />
@@ -94,14 +103,10 @@ export function Sidebar() {
         </p>
       </div>
 
-      {/* Developer credit — fixed at very bottom */}
+      {/* Developer credit */}
       <div className="relative px-6 py-3 border-t border-white/10 bg-black/20">
-        <p className="text-white/40 text-[9.5px] leading-snug">
-          Desenvolvido por
-        </p>
-        <p className="text-white/70 text-[10px] font-semibold leading-snug">
-          Ana Clara Costa Santos
-        </p>
+        <p className="text-white/40 text-[9.5px] leading-snug">Desenvolvido por</p>
+        <p className="text-white/70 text-[10px] font-semibold leading-snug">Ana Clara Costa Santos</p>
       </div>
     </aside>
   );
