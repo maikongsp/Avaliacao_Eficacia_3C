@@ -110,5 +110,30 @@ function initSchema(db: Database.Database) {
       id INTEGER PRIMARY KEY,
       done INTEGER DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS action_plans (
+      id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+      evaluation_id          INTEGER NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
+      training_name          TEXT    NOT NULL,
+      unit_id                INTEGER REFERENCES units(id),
+      unit_name              TEXT    NOT NULL,
+      gap_summary            TEXT,
+      collaborators_with_gap INTEGER DEFAULT 0,
+      avg_gap                REAL    DEFAULT 0,
+      -- 5W2H
+      what                   TEXT NOT NULL,
+      why                    TEXT,
+      how                    TEXT NOT NULL,
+      responsible            TEXT NOT NULL,
+      due_date               TEXT NOT NULL,
+      where_field            TEXT,
+      resources              TEXT,
+      -- Gestão
+      status                 TEXT DEFAULT 'ABERTO',
+      priority               TEXT DEFAULT 'MEDIA',
+      notes                  TEXT,
+      created_at             TEXT DEFAULT (datetime('now')),
+      updated_at             TEXT DEFAULT (datetime('now'))
+    );
   `);
 }

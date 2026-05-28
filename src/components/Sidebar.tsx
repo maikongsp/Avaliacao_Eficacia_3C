@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function ThreeHearts({ size = 20 }: { size?: number }) {
@@ -25,6 +25,7 @@ const nav = [
   { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus            },
   { href: '/colaboradores',   label: 'Colaboradores',  icon: Users           },
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
+  { href: '/planos',          label: 'Planos de Ação', icon: Target          },
 ];
 
 interface SidebarProps {

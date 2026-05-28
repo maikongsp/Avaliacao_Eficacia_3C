@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, MinusCircle, AlertTriangle, Plus } from 'lucide-react';
 import { formatDate, formatPct } from '@/lib/utils';
 import { levelLabel, metDesiredLevel, type SkillLevel } from '@/lib/ranges';
 
@@ -51,6 +51,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
   const [data, setData] = useState<{ evaluation: Evaluation; collaborators: Collaborator[]; answers: Answer[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [plansCount, setPlansCount] = useState(0);
 
   useEffect(() => {
     fetch(`/api/avaliacoes/${params.id}`)
@@ -58,6 +59,14 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
       .then(d => { setData(d); setLoading(false); })
       .catch(() => { setError('Avaliação não encontrada.'); setLoading(false); });
   }, [params.id]);
+
+  useEffect(() => {
+    if (!data) return;
+    fetch(`/api/planos?evaluation_id=${params.id}`)
+      .then(r => r.json())
+      .then(rows => setPlansCount(Array.isArray(rows) ? rows.length : 0))
+      .catch(() => {});
+  }, [data, params.id]);
 
   if (loading) return (
     <div className="flex justify-center py-16">
@@ -115,6 +124,42 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
           </div>
         </div>
       </div>
+
+      {/* Action plan banner */}
+      {collaborators.some(c => c.gap > 0) && (
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={18} className="text-orange-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold text-orange-800 text-sm">
+                {collaborators.filter(c => c.gap > 0).length} colaborador(es) com GAP identificado
+              </p>
+              <p className="text-xs text-orange-600 mt-0.5">
+                {plansCount > 0
+                  ? `${plansCount} plano(s) de ação criado(s) para esta avaliação`
+                  : 'Nenhum plano de ação criado ainda'}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            {plansCount > 0 && (
+              <Link
+                href="/planos"
+                className="text-xs text-orange-700 border border-orange-300 rounded-xl px-3 py-2 hover:bg-orange-100 font-medium transition-colors"
+              >
+                Ver planos
+              </Link>
+            )}
+            <Link
+              href={`/planos/nova?avaliacao=${ev.id}`}
+              className="flex items-center gap-1.5 text-xs bg-brand-600 text-white rounded-xl px-3 py-2 hover:bg-brand-700 font-semibold transition-colors"
+            >
+              <Plus size={13} />
+              Criar Plano de Ação
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Results table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
