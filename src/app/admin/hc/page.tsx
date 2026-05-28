@@ -13,20 +13,22 @@ interface ImportResult {
   inserted: number;
   updated: number;
   skipped: number;
+  totalInDb?: number;
   errors: string[];
   detectedColumns: Record<string, string | null>;
   error?: string;
 }
 
 export default function AdminHCPage() {
-  const [password, setPassword]   = useState('');
-  const [file, setFile]           = useState<File | null>(null);
-  const [sheet, setSheet]         = useState('');
-  const [dragging, setDragging]   = useState(false);
-  const [loading, setLoading]     = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [result, setResult]       = useState<ImportResult | null>(null);
-  const [authError, setAuthError] = useState('');
+  const [password, setPassword]       = useState('');
+  const [file, setFile]               = useState<File | null>(null);
+  const [sheet, setSheet]             = useState('');
+  const [filterIndustrial, setFilterIndustrial] = useState(false);
+  const [dragging, setDragging]       = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [exporting, setExporting]     = useState(false);
+  const [result, setResult]           = useState<ImportResult | null>(null);
+  const [authError, setAuthError]     = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (f: File) => {
@@ -79,6 +81,7 @@ export default function AdminHCPage() {
     fd.append('password', password);
     fd.append('file', file);
     if (sheet) fd.append('sheet', sheet);
+    if (filterIndustrial) fd.append('filter_industrial', '1');
 
     try {
       const res = await fetch('/api/admin/hc', { method: 'POST', body: fd });
@@ -202,23 +205,36 @@ export default function AdminHCPage() {
             )}
           </div>
 
-          {/* Sheet selector — shown after a failed import that returned sheet list */}
+          {/* Sheet selector — always shown when sheets available */}
           {result?.sheets && result.sheets.length > 0 && (
-            <div className="relative">
-              <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wide mb-1">
-                Aba da planilha
-              </label>
-              <select
-                value={sheet}
-                onChange={e => setSheet(e.target.value)}
-                className={inp + ' appearance-none'}
-              >
-                <option value="">Auto-detectar "HC maio"</option>
-                {result.sheets.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 bottom-3 text-gray-400 pointer-events-none" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="relative">
+                <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wide mb-1">
+                  Aba da planilha
+                </label>
+                <select
+                  value={sheet}
+                  onChange={e => setSheet(e.target.value)}
+                  className={inp + ' appearance-none'}
+                >
+                  <option value="">Auto-detectar (Detalhe15 ou HC)</option>
+                  {result.sheets.map(s => (
+                    <option key={s} value={s.trim()}>{s.trim()}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 bottom-3 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="flex items-end pb-2.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={filterIndustrial}
+                    onChange={e => setFilterIndustrial(e.target.checked)}
+                    className="w-4 h-4 rounded accent-brand-600"
+                  />
+                  <span className="text-xs text-gray-600 font-medium">Somente Diretoria Industrial</span>
+                </label>
+              </div>
             </div>
           )}
         </div>
@@ -247,11 +263,12 @@ export default function AdminHCPage() {
                 <p className="font-semibold text-green-800">Importação concluída — aba "{result.sheet}"</p>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className={`grid gap-3 ${result.totalInDb ? 'grid-cols-4' : 'grid-cols-3'}`}>
                 {[
-                  { label: 'Inseridos', value: result.inserted, color: 'bg-green-100 text-green-800' },
-                  { label: 'Atualizados', value: result.updated, color: 'bg-blue-100 text-blue-800' },
-                  { label: 'Ignorados', value: result.skipped, color: 'bg-gray-100 text-gray-600' },
+                  { label: 'Inseridos',   value: result.inserted,         color: 'bg-green-100 text-green-800' },
+                  { label: 'Atualizados', value: result.updated,          color: 'bg-blue-100 text-blue-800' },
+                  { label: 'Ignorados',   value: result.skipped,          color: 'bg-gray-100 text-gray-600' },
+                  ...(result.totalInDb ? [{ label: 'Total no BD', value: result.totalInDb, color: 'bg-brand-100 text-brand-800' }] : []),
                 ].map(({ label, value, color }) => (
                   <div key={label} className={`${color} rounded-xl p-3 text-center`}>
                     <p className="text-2xl font-bold">{value}</p>
