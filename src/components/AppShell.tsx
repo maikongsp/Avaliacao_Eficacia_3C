@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
 import { Sidebar } from './Sidebar';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -57,17 +58,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Brand mark */}
-            <div className="flex items-center gap-2">
-              <div className="flex gap-0.5">
-                {[0, 1, 2].map(i => (
-                  <svg key={i} viewBox="0 0 20 18" className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#AA272F">
-                    <path d="M10 17S1 11 1 5.5A4.5 4.5 0 0 1 10 3.428 4.5 4.5 0 0 1 19 5.5C19 11 10 17 10 17z"/>
-                  </svg>
-                ))}
-              </div>
-              <span className="font-display text-sm font-bold text-brand-700 tracking-wide">
-                3Corações
-              </span>
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/images/logo-grupo-transparent.png"
+                alt="Grupo 3Corações"
+                width={30}
+                height={30}
+                priority
+              />
               <span className="hidden sm:inline text-gray-200 text-sm">|</span>
               <span className="hidden sm:inline text-xs text-gray-500 font-medium">
                 Avaliação de Desempenho de Treinamento

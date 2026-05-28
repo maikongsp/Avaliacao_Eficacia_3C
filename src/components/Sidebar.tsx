@@ -1,23 +1,9 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-function ThreeHearts({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size * 3.2} height={size} viewBox="0 0 64 20" fill="none">
-      {[0, 22, 44].map((ox) => (
-        <path
-          key={ox}
-          d={`M${ox + 10} 18 C${ox + 10} 18 ${ox + 1} 12 ${ox + 1} 6.5 A4.5 4.5 0 0 1 ${ox + 10} 4.43 A4.5 4.5 0 0 1 ${ox + 19} 6.5 C${ox + 19} 12 ${ox + 10} 18 ${ox + 10} 18 Z`}
-          fill="white"
-          fillOpacity="0.92"
-        />
-      ))}
-    </svg>
-  );
-}
 
 const nav = [
   { href: '/',                label: 'Dashboard',      icon: LayoutDashboard },
@@ -50,13 +36,19 @@ export function Sidebar({ onClose }: SidebarProps) {
           <X size={18} />
         </button>
 
-        <ThreeHearts size={18} />
+        {/* Logo oficial */}
+        <div className="inline-flex rounded-2xl bg-white p-2 shadow-lg">
+          <Image
+            src="/images/logo-grupo-transparent.png"
+            alt="Grupo 3Corações"
+            width={56}
+            height={56}
+            priority
+          />
+        </div>
 
         <div className="mt-3">
-          <p className="text-white font-display text-lg font-bold leading-none tracking-wide">
-            3Corações
-          </p>
-          <p className="text-red-200 text-[11px] mt-1 tracking-widest uppercase font-medium">
+          <p className="text-red-200 text-[11px] tracking-widest uppercase font-medium">
             Grupo Empresarial
           </p>
         </div>
