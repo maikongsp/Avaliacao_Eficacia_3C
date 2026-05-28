@@ -1,0 +1,126 @@
+'use client';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Plus, Search } from 'lucide-react';
+import { formatDate, formatPct } from '@/lib/utils';
+import { levelLabel, type SkillLevel } from '@/lib/ranges';
+
+interface Evaluation {
+  id: number;
+  evaluator_email: string;
+  evaluation_date: string;
+  training: string;
+  category: string;
+  unit: string;
+  collaborators: number;
+  avg_pct: number;
+  met: number;
+}
+
+const LEVEL_BADGE: Record<string, string> = {
+  REATIVO: 'bg-red-100 text-red-700',
+  DEPENDENTE: 'bg-orange-100 text-orange-700',
+  INDEPENDENTE: 'bg-blue-100 text-blue-700',
+  INTERDEPENDENTE: 'bg-green-100 text-green-700',
+};
+
+export default function AvaliacoesPage() {
+  const [rows, setRows] = useState<Evaluation[]>([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/avaliacoes')
+      .then(r => r.json())
+      .then(d => { setRows(d); setLoading(false); });
+  }, []);
+
+  const filtered = rows.filter(r =>
+    r.training.toLowerCase().includes(search.toLowerCase()) ||
+    r.unit.toLowerCase().includes(search.toLowerCase()) ||
+    r.evaluator_email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Avaliações</h2>
+          <p className="text-sm text-gray-500">{rows.length} avaliação(ões) registrada(s)</p>
+        </div>
+        <Link
+          href="/avaliacoes/nova"
+          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+        >
+          <Plus size={16} /> Nova Avaliação
+        </Link>
+      </div>
+
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Pesquisar por treinamento, unidade ou avaliador..."
+          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+        />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-gray-400">Nenhuma avaliação encontrada.</p>
+            <Link href="/avaliacoes/nova" className="mt-3 inline-block text-sm text-orange-600 hover:underline">
+              Criar primeira avaliação
+            </Link>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                {['#', 'Treinamento', 'Categoria', 'Unidade', 'Data', 'Colaboradores', '% Acerto', 'Atingiram Nível', ''].map(h => (
+                  <th key={h} className="text-left text-gray-500 font-medium px-4 py-3 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(row => {
+                const pct = row.avg_pct ?? 0;
+                const metRate = row.collaborators > 0 ? row.met / row.collaborators : 0;
+                return (
+                  <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-gray-400 font-mono text-xs">#{row.id}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{row.training}</td>
+                    <td className="px-4 py-3 text-gray-500">{row.category}</td>
+                    <td className="px-4 py-3 text-gray-600">{row.unit}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{formatDate(row.evaluation_date)}</td>
+                    <td className="px-4 py-3 text-center text-gray-600">{row.collaborators}</td>
+                    <td className="px-4 py-3 text-center font-semibold">
+                      <span className={pct >= 70 ? 'text-green-600' : pct >= 50 ? 'text-orange-500' : 'text-red-500'}>
+                        {pct}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metRate >= 1 ? 'bg-green-100 text-green-700' : metRate >= 0.5 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                        {row.met}/{row.collaborators}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/avaliacoes/${row.id}`} className="text-orange-600 hover:text-orange-800 text-xs font-medium">
+                        Ver →
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
