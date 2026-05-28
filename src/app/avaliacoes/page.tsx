@@ -18,10 +18,10 @@ interface Evaluation {
 }
 
 const LEVEL_BADGE: Record<string, string> = {
-  REATIVO: 'bg-red-100 text-red-700',
-  DEPENDENTE: 'bg-brand-100 text-brand-700',
-  INDEPENDENTE: 'bg-blue-100 text-blue-700',
-  INTERDEPENDENTE: 'bg-green-100 text-green-700',
+  REATIVO:         'bg-red-50 text-brand-700 border border-brand-200',
+  DEPENDENTE:      'bg-yellow-50 text-yellow-700 border border-yellow-200',
+  INDEPENDENTE:    'bg-green-50 text-green-800 border border-green-200',
+  INTERDEPENDENTE: 'bg-green-100 text-green-900 border border-green-300',
 };
 
 export default function AvaliacoesPage() {
@@ -45,28 +45,28 @@ export default function AvaliacoesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Avaliações</h2>
-          <p className="text-sm text-gray-500">{rows.length} avaliação(ões) registrada(s)</p>
+          <h2 className="font-display text-2xl font-bold text-brand-800">Avaliações</h2>
+          <p className="text-sm text-brand-muted mt-0.5">{rows.length} avaliação(ões) registrada(s)</p>
         </div>
         <Link
           href="/avaliacoes/nova"
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm"
         >
           <Plus size={16} /> Nova Avaliação
         </Link>
       </div>
 
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-400" />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Pesquisar por treinamento, unidade ou avaliador..."
-          className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="w-full pl-9 pr-4 py-2.5 border border-red-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
         />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-red-100 overflow-hidden shadow-card">
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
@@ -80,10 +80,10 @@ export default function AvaliacoesPage() {
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-brand-50 border-b border-red-100">
               <tr>
                 {['#', 'Treinamento', 'Categoria', 'Unidade', 'Data', 'Colaboradores', '% Acerto', 'Atingiram Nível', ''].map(h => (
-                  <th key={h} className="text-left text-gray-500 font-medium px-4 py-3 whitespace-nowrap">{h}</th>
+                  <th key={h} className="text-left text-brand-muted font-semibold text-[11px] uppercase tracking-wide px-4 py-3 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -92,7 +92,7 @@ export default function AvaliacoesPage() {
                 const pct = row.avg_pct ?? 0;
                 const metRate = row.collaborators > 0 ? row.met / row.collaborators : 0;
                 return (
-                  <tr key={row.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <tr key={row.id} className="border-b border-red-50 hover:bg-brand-50/50 transition-colors">
                     <td className="px-4 py-3 text-gray-400 font-mono text-xs">#{row.id}</td>
                     <td className="px-4 py-3 font-medium text-gray-800 max-w-xs truncate">{row.training}</td>
                     <td className="px-4 py-3 text-gray-500">{row.category}</td>

@@ -18,10 +18,10 @@ interface DashData {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  REATIVO: '#ef4444',
-  DEPENDENTE: '#f97316',
-  INDEPENDENTE: '#3b82f6',
-  INTERDEPENDENTE: '#22c55e',
+  REATIVO:         '#AA272F',
+  DEPENDENTE:      '#FDC82F',
+  INDEPENDENTE:    '#427730',
+  INTERDEPENDENTE: '#2D5E1E',
 };
 
 export default function RelatoriosPage() {
@@ -67,8 +67,8 @@ export default function RelatoriosPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Relatórios</h2>
-        <p className="text-sm text-gray-500">Análise consolidada de desempenho em treinamentos</p>
+        <h2 className="font-display text-2xl font-bold text-brand-800">Relatórios</h2>
+        <p className="text-sm text-brand-muted mt-0.5">Análise consolidada de desempenho em treinamentos</p>
       </div>
 
       {/* Summary strip */}
@@ -79,25 +79,25 @@ export default function RelatoriosPage() {
           { label: 'Atingiram Nível Desejado', value: formatPct(data.metPct) },
           { label: 'GAP Médio', value: formatPct(data.avgGap) },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4">
-            <p className="text-xs text-gray-500">{s.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
+          <div key={s.label} className="bg-white border border-red-100 rounded-2xl p-4 shadow-card">
+            <p className="text-[11px] text-brand-muted uppercase tracking-wide font-medium">{s.label}</p>
+            <p className="text-2xl font-bold text-brand-dark mt-1">{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* By Category */}
       {catData.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Desempenho por Categoria de Treinamento</h3>
+        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+          <h3 className="font-display font-bold text-brand-800 mb-4">Desempenho por Categoria de Treinamento</h3>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={catData} layout="vertical" margin={{ left: 10, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
               <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 10 }} />
               <Tooltip formatter={(v: number) => `${v}%`} />
-              <Bar dataKey="Acertos (%)" fill="#C41230" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="Atingiram Nível (%)" fill="#22c55e" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="Acertos (%)" fill="#AA272F" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="Atingiram Nível (%)" fill="#427730" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
           <div className="flex gap-4 text-xs text-gray-500 mt-2 justify-center">
@@ -110,8 +110,8 @@ export default function RelatoriosPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Level distribution */}
         {pieData.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">Distribuição de Níveis Alcançados</h3>
+          <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+            <h3 className="font-display font-bold text-brand-800 mb-4">Distribuição de Níveis Alcançados</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}
@@ -135,15 +135,15 @@ export default function RelatoriosPage() {
 
         {/* GAP by category */}
         {gapData.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-800 mb-4">GAP por Categoria (%  abaixo do nível desejado)</h3>
+          <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+            <h3 className="font-display font-bold text-brand-800 mb-4">GAP por Categoria (% abaixo do nível desejado)</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={gapData} margin={{ left: 0, right: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="category" tick={{ fontSize: 9 }} />
                 <YAxis domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="gap" name="GAP (%)" fill="#98531a" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="gap" name="GAP (%)" fill="#AA272F" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -152,8 +152,8 @@ export default function RelatoriosPage() {
 
       {/* By Unit table */}
       {unitData.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Ranking por Unidade</h3>
+        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+          <h3 className="font-display font-bold text-brand-800 mb-4">Ranking por Unidade</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

@@ -10,10 +10,10 @@ import { formatDate, formatPct } from '@/lib/utils';
 import { levelLabel } from '@/lib/ranges';
 
 const LEVEL_COLORS: Record<string, string> = {
-  REATIVO: '#ef4444',
-  DEPENDENTE: '#98531a',
-  INDEPENDENTE: '#3b82f6',
-  INTERDEPENDENTE: '#22c55e',
+  REATIVO:         '#AA272F',  // vermelho oficial 3corações
+  DEPENDENTE:      '#FDC82F',  // amarelo oficial 3corações
+  INDEPENDENTE:    '#427730',  // verde oficial 3corações
+  INTERDEPENDENTE: '#2D5E1E',  // verde escuro
 };
 
 interface DashboardData {
@@ -32,24 +32,25 @@ interface DashboardData {
   }[];
 }
 
-function StatCard({ icon: Icon, label, value, sub, color = 'orange' }: {
+function StatCard({ icon: Icon, label, value, sub, color = 'red' }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string;
 }) {
-  const colors: Record<string, string> = {
-    orange: 'bg-brand-50 text-brand-600',
-    green: 'bg-green-50 text-green-600',
-    blue: 'bg-blue-50 text-blue-600',
-    red: 'bg-red-50 text-red-600',
+  const colors: Record<string, { bg: string; icon: string; border: string }> = {
+    red:    { bg: 'bg-brand-50',  icon: 'text-brand-600', border: 'border-brand-100' },
+    green:  { bg: 'bg-green-50',  icon: 'text-green-700', border: 'border-green-100' },
+    yellow: { bg: 'bg-yellow-50', icon: 'text-yellow-600', border: 'border-yellow-100' },
+    coffee: { bg: 'bg-orange-50', icon: 'text-brand-coffee', border: 'border-orange-100' },
   };
+  const c = colors[color] ?? colors.red;
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4">
-      <div className={`p-2.5 rounded-lg ${colors[color]}`}>
+    <div className={`bg-white rounded-2xl border ${c.border} p-5 flex items-start gap-4 shadow-card hover:shadow-card-hover transition-shadow`}>
+      <div className={`p-2.5 rounded-xl ${c.bg} ${c.icon} shrink-0`}>
         <Icon size={20} />
       </div>
-      <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      <div className="min-w-0">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold text-brand-dark mt-0.5">{value}</p>
+        {sub && <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>}
       </div>
     </div>
   );
@@ -90,12 +91,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-          <p className="text-sm text-gray-500">Visão geral das avaliações de treinamento</p>
+          <h2 className="font-display text-2xl font-bold text-brand-800">Dashboard</h2>
+          <p className="text-sm text-brand-muted mt-0.5">Visão geral das avaliações de treinamento</p>
         </div>
         <Link
           href="/avaliacoes/nova"
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md"
         >
           <Plus size={16} />
           Nova Avaliação
@@ -104,8 +105,8 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={ClipboardList} label="Total de Avaliações" value={data.totalEvals} color="orange" />
-        <StatCard icon={Users} label="Colaboradores Avaliados" value={data.totalCollabs} color="blue" />
+        <StatCard icon={ClipboardList} label="Total de Avaliações" value={data.totalEvals} color="red" />
+        <StatCard icon={Users} label="Colaboradores Avaliados" value={data.totalCollabs} color="coffee" />
         <StatCard
           icon={TrendingUp} label="Atingiram Nível Desejado"
           value={`${data.metLevel} (${formatPct(data.metPct)})`}
@@ -115,7 +116,7 @@ export default function DashboardPage() {
         <StatCard
           icon={AlertCircle} label="GAP Médio"
           value={formatPct(data.avgGap)}
-          color={data.avgGap > 0.3 ? 'red' : 'orange'}
+          color={data.avgGap > 0.3 ? 'red' : 'yellow'}
           sub="Distância ao nível desejado"
         />
       </div>
@@ -123,8 +124,8 @@ export default function DashboardPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* By Category */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">% Acerto por Categoria</h3>
+        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+          <h3 className="font-display text-sm font-bold text-brand-800 mb-4">% Acerto por Categoria</h3>
           {catData.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">Sem dados ainda</p>
           ) : (
@@ -133,15 +134,15 @@ export default function DashboardPage() {
                 <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fontSize: 11 }} />
                 <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v: number) => `${v}%`} />
-                <Bar dataKey="pct" fill="#C41230" radius={[0, 4, 4, 0]} name="% Acerto" />
+                <Bar dataKey="pct" fill="#AA272F" radius={[0, 4, 4, 0]} name="% Acerto" />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
         {/* Levels Pie */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Distribuição de Níveis Alcançados</h3>
+        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+          <h3 className="font-display text-sm font-bold text-brand-800 mb-4">Distribuição de Níveis Alcançados</h3>
           {pieData.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">Sem dados ainda</p>
           ) : (
@@ -161,8 +162,8 @@ export default function DashboardPage() {
 
       {/* By Unit */}
       {data.byUnit.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Desempenho por Unidade</h3>
+        <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
+          <h3 className="font-display text-sm font-bold text-brand-800 mb-4">Desempenho por Unidade</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -193,10 +194,10 @@ export default function DashboardPage() {
       )}
 
       {/* Recent evaluations */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="bg-white rounded-2xl border border-red-100 p-5 shadow-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-gray-700">Avaliações Recentes</h3>
-          <Link href="/avaliacoes" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1">
+          <h3 className="font-display text-sm font-bold text-brand-800">Avaliações Recentes</h3>
+          <Link href="/avaliacoes" className="text-xs text-brand-600 hover:text-brand-700 flex items-center gap-1 font-medium">
             Ver todas <ArrowRight size={12} />
           </Link>
         </div>

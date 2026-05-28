@@ -1,21 +1,46 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
-    @apply bg-gray-50 text-brand-dark;
+    @apply bg-brand-cream text-brand-dark;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
 @layer utilities {
+  /* Gradiente oficial vermelho 3corações */
   .brand-gradient {
-    background: linear-gradient(135deg, #C41230 0%, #75152e 100%);
+    background: linear-gradient(165deg, #AA272F 0%, #68151A 55%, #3F0C0F 100%);
   }
+  /* Versão quente com café */
   .brand-gradient-warm {
-    background: linear-gradient(135deg, #de0209 0%, #98531a 100%);
+    background: linear-gradient(135deg, #AA272F 0%, #7A3010 100%);
   }
+  /* Gradiente amarelo-ouro sutil */
+  .brand-gradient-gold {
+    background: linear-gradient(135deg, #FDC82F 0%, #F5A800 100%);
+  }
+  /* Padrão de três corações — decorativo */
+  .hearts-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20 35S5 25 5 14a7 7 0 0 1 15-3 7 7 0 0 1 15 3c0 11-15 21-15 21z' fill='%23AA272F' fill-opacity='0.04'/%3E%3C/svg%3E");
+  }
+  /* Cartão com sombra sutil da marca */
+  .brand-card {
+    @apply bg-white rounded-2xl border border-red-100 shadow-card;
+  }
+  /* Scrollbar personalizada */
+  .scrollbar-brand::-webkit-scrollbar { width: 4px; }
+  .scrollbar-brand::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-brand::-webkit-scrollbar-thumb { @apply bg-brand-200 rounded-full; }
 }
