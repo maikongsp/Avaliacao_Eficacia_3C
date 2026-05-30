@@ -136,4 +136,11 @@ function initSchema(db: Database.Database) {
       updated_at             TEXT DEFAULT (datetime('now'))
     );
   `);
+
+  // Clean up invalid unit names (e.g. '-') from HC imports
+  db.exec(`
+    UPDATE employees SET unit_id = NULL
+    WHERE unit_id IN (SELECT id FROM units WHERE TRIM(name) IN ('-','','—'));
+    DELETE FROM units WHERE TRIM(name) IN ('-','','—');
+  `);
 }
