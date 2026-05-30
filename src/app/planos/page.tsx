@@ -1,12 +1,15 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter } from 'lucide-react';
+import { Plus, Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface Plan {
   id: number;
   evaluation_id: number;
+  eval_collaborator_id: number | null;
+  employee_name: string | null;
   training_name: string;
   unit_name: string;
   collaborators_with_gap: number;
@@ -61,12 +64,15 @@ function KpiCard({ value, label, icon: Icon, color }: { value: number; label: st
   );
 }
 
-export default function PlanosPage() {
+function PlanosContent() {
+  const searchParams = useSearchParams();
+  const initCollabId = searchParams.get('eval_collaborator_id') ?? '';
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
 
-  const [filters, setFilters] = useState({ search: '', unit: '', responsible: '', status: '' });
+  const [filters, setFilters] = useState({ search: '', unit: '', responsible: '', status: '', collabId: initCollabId });
 
   const load = useCallback(() => {
     setLoading(true);
@@ -74,10 +80,11 @@ export default function PlanosPage() {
     if (filters.unit) params.set('unit', filters.unit);
     if (filters.responsible) params.set('responsible', filters.responsible);
     if (filters.status) params.set('status', filters.status);
+    if (filters.collabId) params.set('eval_collaborator_id', filters.collabId);
     fetch(`/api/planos?${params}`)
       .then(r => r.json())
       .then(d => { setPlans(d); setLoading(false); });
-  }, [filters.unit, filters.responsible, filters.status]);
+  }, [filters.unit, filters.responsible, filters.status, filters.collabId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -86,7 +93,8 @@ export default function PlanosPage() {
     p.training_name.toLowerCase().includes(filters.search.toLowerCase()) ||
     p.unit_name.toLowerCase().includes(filters.search.toLowerCase()) ||
     p.responsible.toLowerCase().includes(filters.search.toLowerCase()) ||
-    p.what.toLowerCase().includes(filters.search.toLowerCase())
+    p.what.toLowerCase().includes(filters.search.toLowerCase()) ||
+    (p.employee_name ?? '').toLowerCase().includes(filters.search.toLowerCase())
   );
 
   // KPIs
@@ -219,8 +227,8 @@ export default function PlanosPage() {
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center space-y-2">
             <p className="text-gray-400">Nenhum plano de ação encontrado.</p>
-            <Link href="/planos/nova" className="inline-block text-sm text-brand-600 hover:underline">
-              Criar primeiro plano
+            <Link href="/avaliacoes" className="inline-block text-sm text-brand-600 hover:underline">
+              Criar a partir de uma avaliação com GAP
             </Link>
           </div>
         ) : (
@@ -228,7 +236,7 @@ export default function PlanosPage() {
             <table className="w-full text-sm min-w-[700px]">
               <thead className="bg-brand-50 border-b border-red-100">
                 <tr>
-                  {['Treinamento / Ação', 'Unidade', 'Responsável', 'Prazo', 'Prioridade', 'Status', ''].map(h => (
+                  {['Colaborador / Treinamento', 'Unidade', 'Responsável', 'Prazo', 'Prioridade', 'Status', ''].map(h => (
                     <th key={h} className="text-left text-brand-muted font-semibold text-[11px] uppercase tracking-wide px-4 py-3 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -240,7 +248,13 @@ export default function PlanosPage() {
                   return (
                     <tr key={plan.id} className="border-b border-red-50 hover:bg-brand-50/40 transition-colors">
                       <td className="px-4 py-3 max-w-xs">
-                        <p className="font-semibold text-brand-dark truncate" title={plan.training_name}>
+                        {plan.employee_name && (
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <User size={11} className="text-brand-500 shrink-0" />
+                            <p className="text-xs font-semibold text-brand-700">{plan.employee_name}</p>
+                          </div>
+                        )}
+                        <p className="font-semibold text-brand-dark truncate text-sm" title={plan.training_name}>
                           {plan.training_name}
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5 truncate" title={plan.what}>
@@ -286,7 +300,7 @@ export default function PlanosPage() {
                             </button>
                           )}
                           <Link
-                            href={`/planos/nova?avaliacao=${plan.evaluation_id}`}
+                            href={`/planos/nova?avaliacao=${plan.evaluation_id}${plan.eval_collaborator_id ? `&colaborador=${plan.eval_collaborator_id}` : ''}`}
                             className="text-[11px] text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition-colors"
                           >
                             Editar
@@ -308,5 +322,17 @@ export default function PlanosPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PlanosPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center py-16">
+        <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
+      </div>
+    }>
+      <PlanosContent />
+    </Suspense>
   );
 }

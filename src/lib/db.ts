@@ -143,4 +143,8 @@ function initSchema(db: Database.Database) {
     WHERE unit_id IN (SELECT id FROM units WHERE TRIM(name) IN ('-','','—'));
     DELETE FROM units WHERE TRIM(name) IN ('-','','—');
   `);
+
+  // Migrate: add collaborator columns to action_plans if not yet present
+  try { db.exec('ALTER TABLE action_plans ADD COLUMN eval_collaborator_id INTEGER REFERENCES eval_collaborators(id)'); } catch {}
+  try { db.exec('ALTER TABLE action_plans ADD COLUMN employee_name TEXT'); } catch {}
 }

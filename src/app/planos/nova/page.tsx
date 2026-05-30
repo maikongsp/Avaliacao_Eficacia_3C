@@ -2,8 +2,9 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, AlertTriangle, Save } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Save, User } from 'lucide-react';
 import { formatPct } from '@/lib/utils';
+import { levelLabel } from '@/lib/ranges';
 
 const STATUS_OPTS = ['ABERTO', 'EM_ANDAMENTO', 'CONCLUIDO', 'CANCELADO'];
 const PRIORITY_OPTS = ['BAIXA', 'MEDIA', 'ALTA', 'CRITICA'];
@@ -14,25 +15,29 @@ const STATUS_LABELS: Record<string, string> = {
   ABERTO: 'Aberto', EM_ANDAMENTO: 'Em Andamento', CONCLUIDO: 'Concluído', CANCELADO: 'Cancelado',
 };
 
-interface EvalSummary {
-  id: number;
+interface CollabContext {
+  eval_collaborator_id: number;
+  employee_name: string;
+  desired_level: string;
+  achieved_level: string;
+  gap: number;
+  percentage: number;
   training: string;
   unit: string;
   unit_id: number;
+  evaluation_id: number;
+  training_date: string;
   evaluation_date: string;
-  collaborators_with_gap: number;
-  total: number;
-  avg_gap: number;
-  gap_names: string;
 }
 
 function NovoPlanoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const evalId = searchParams.get('avaliacao');
+  const evalId    = searchParams.get('avaliacao');
+  const collabId  = searchParams.get('colaborador');  // eval_collaborators.id
 
-  const [evalData, setEvalData] = useState<EvalSummary | null>(null);
-  const [loading, setLoading] = useState(!!evalId);
+  const [collab, setCollab] = useState<CollabContext | null>(null);
+  const [loading, setLoading] = useState(!!(evalId && collabId));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,42 +50,43 @@ function NovoPlanoContent() {
     where_field: '',
     resources: '',
     status: 'ABERTO',
-    priority: 'MEDIA',
+    priority: 'ALTA',
     notes: '',
   });
 
   useEffect(() => {
-    if (!evalId) return;
+    if (!evalId || !collabId) return;
     fetch(`/api/avaliacoes/${evalId}`)
       .then(r => r.json())
       .then(d => {
         const ev = d.evaluation;
-        const collabs: { gap: number; employee_name: string }[] = d.collaborators;
-        const withGap = collabs.filter(c => c.gap > 0);
-        const avgGap = withGap.length > 0
-          ? withGap.reduce((s, c) => s + c.gap, 0) / withGap.length
-          : 0;
+        const c  = (d.collaborators as { id: number; employee_name: string; desired_level: string; achieved_level: string; gap: number; percentage: number }[])
+          .find(x => x.id === Number(collabId));
+        if (!c) { setLoading(false); return; }
 
-        setEvalData({
-          id: ev.id,
-          training: ev.training,
-          unit: ev.unit,
-          unit_id: 0,
+        const ctx: CollabContext = {
+          eval_collaborator_id: c.id,
+          employee_name:   c.employee_name,
+          desired_level:   c.desired_level,
+          achieved_level:  c.achieved_level,
+          gap:             c.gap,
+          percentage:      c.percentage,
+          training:        ev.training,
+          unit:            ev.unit,
+          unit_id:         ev.unit_id,
+          evaluation_id:   ev.id,
+          training_date:   ev.training_date,
           evaluation_date: ev.evaluation_date,
-          collaborators_with_gap: withGap.length,
-          total: collabs.length,
-          avg_gap: avgGap,
-          gap_names: withGap.map(c => c.employee_name).join(', '),
-        });
-
+        };
+        setCollab(ctx);
         setForm(f => ({
           ...f,
-          why: `GAP identificado em ${withGap.length} colaborador(es): ${withGap.map(c => c.employee_name).join(', ')}. GAP médio: ${formatPct(avgGap)}.`,
+          why: `Colaborador ${c.employee_name} não atingiu o nível desejado (${levelLabel(c.desired_level)}) — alcançou ${levelLabel(c.achieved_level)} com ${formatPct(c.percentage)} de acerto. GAP: ${formatPct(c.gap)}.`,
         }));
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [evalId]);
+  }, [evalId, collabId]);
 
   const field = (key: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -92,6 +98,10 @@ function NovoPlanoContent() {
       setError('Preencha os campos obrigatórios: O Quê, Como, Responsável e Prazo.');
       return;
     }
+    if (!collab && (!evalId)) {
+      setError('Plano deve estar vinculado a uma avaliação.');
+      return;
+    }
     setSaving(true);
     setError('');
     try {
@@ -99,12 +109,15 @@ function NovoPlanoContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          evaluation_id: evalId ? Number(evalId) : 0,
-          training_name: evalData?.training ?? 'Sem avaliação',
-          unit_name: evalData?.unit ?? '',
-          gap_summary: evalData ? `${evalData.collaborators_with_gap} colaborador(es) com GAP` : '',
-          collaborators_with_gap: evalData?.collaborators_with_gap ?? 0,
-          avg_gap: evalData?.avg_gap ?? 0,
+          evaluation_id:        collab?.evaluation_id ?? Number(evalId) ?? 0,
+          eval_collaborator_id: collab?.eval_collaborator_id ?? null,
+          employee_name:        collab?.employee_name ?? null,
+          training_name:        collab?.training ?? 'Sem treinamento',
+          unit_id:              collab?.unit_id ?? null,
+          unit_name:            collab?.unit ?? '',
+          gap_summary:          collab ? `GAP de ${formatPct(collab.gap)} — nível desejado: ${levelLabel(collab.desired_level)}, alcançado: ${levelLabel(collab.achieved_level)}` : '',
+          collaborators_with_gap: collab ? 1 : 0,
+          avg_gap:              collab?.gap ?? 0,
           ...form,
         }),
       });
@@ -122,7 +135,7 @@ function NovoPlanoContent() {
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/planos" className="text-gray-400 hover:text-gray-600">
+        <Link href={evalId ? `/avaliacoes/${evalId}` : '/planos'} className="text-gray-400 hover:text-gray-600">
           <ArrowLeft size={18} />
         </Link>
         <div>
@@ -131,33 +144,40 @@ function NovoPlanoContent() {
         </div>
       </div>
 
-      {/* Contexto da avaliação */}
       {loading && (
         <div className="flex justify-center py-6">
           <div className="animate-spin h-6 w-6 border-4 border-brand-500 border-t-transparent rounded-full" />
         </div>
       )}
 
-      {evalData && (
-        <div className="bg-brand-50 border border-brand-100 rounded-2xl p-4">
+      {/* Contexto do colaborador */}
+      {collab && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
           <div className="flex items-start gap-3">
-            <AlertTriangle size={18} className="text-brand-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-brand-800">{evalData.training}</p>
-              <p className="text-xs text-brand-muted mt-0.5">{evalData.unit}</p>
-              <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
-                  {evalData.collaborators_with_gap} colaborador(es) com GAP
+            <AlertTriangle size={17} className="text-red-500 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-red-800">{collab.training}</p>
+              <p className="text-xs text-red-600 mt-0.5">{collab.unit}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-3">
+            <User size={16} className="text-brand-500 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-brand-dark">{collab.employee_name}</p>
+              <div className="flex flex-wrap gap-3 mt-1 text-xs">
+                <span className="text-gray-500">
+                  Nível desejado: <strong className="text-brand-700">{levelLabel(collab.desired_level)}</strong>
                 </span>
-                <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-                  GAP médio: {formatPct(evalData.avg_gap)}
+                <span className="text-gray-500">
+                  Alcançado: <strong className="text-red-600">{levelLabel(collab.achieved_level)}</strong>
+                </span>
+                <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-semibold">
+                  GAP {formatPct(collab.gap)}
+                </span>
+                <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
+                  Acerto {formatPct(collab.percentage)}
                 </span>
               </div>
-              {evalData.gap_names && (
-                <p className="text-xs text-brand-muted mt-1.5">
-                  <span className="font-medium">Com gap:</span> {evalData.gap_names}
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -169,37 +189,33 @@ function NovoPlanoContent() {
             Definição da Ação
           </h3>
 
-          {/* O Quê */}
           <div>
             <label className={labelClass}>O Quê <span className="text-red-500">*</span></label>
             <textarea
               value={form.what} onChange={field('what')} required rows={2}
-              placeholder="Descreva a ação que será executada para eliminar o GAP..."
+              placeholder="Descreva a ação que será executada para eliminar o GAP do colaborador..."
               className={inputClass}
             />
           </div>
 
-          {/* Por Quê */}
           <div>
             <label className={labelClass}>Por Quê</label>
             <textarea
-              value={form.why} onChange={field('why')} rows={2}
+              value={form.why} onChange={field('why')} rows={3}
               placeholder="Justificativa — qual gap esta ação visa corrigir..."
               className={inputClass}
             />
           </div>
 
-          {/* Como */}
           <div>
             <label className={labelClass}>Como <span className="text-red-500">*</span></label>
             <textarea
               value={form.how} onChange={field('how')} required rows={2}
-              placeholder="Descreva como a ação será realizada (metodologia, treinamento, etc.)..."
+              placeholder="Descreva como a ação será realizada..."
               className={inputClass}
             />
           </div>
 
-          {/* Onde + Recursos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Onde</label>
@@ -226,7 +242,6 @@ function NovoPlanoContent() {
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Quem */}
             <div>
               <label className={labelClass}>Responsável (Quem) <span className="text-red-500">*</span></label>
               <input
@@ -235,7 +250,6 @@ function NovoPlanoContent() {
                 className={inputClass}
               />
             </div>
-            {/* Quando */}
             <div>
               <label className={labelClass}>Prazo (Quando) <span className="text-red-500">*</span></label>
               <input
@@ -264,7 +278,6 @@ function NovoPlanoContent() {
             </div>
           </div>
 
-          {/* Observações */}
           <div>
             <label className={labelClass}>Observações</label>
             <textarea
@@ -283,7 +296,7 @@ function NovoPlanoContent() {
 
         <div className="flex justify-end gap-3">
           <Link
-            href="/planos"
+            href={evalId ? `/avaliacoes/${evalId}` : '/planos'}
             className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
           >
             Cancelar

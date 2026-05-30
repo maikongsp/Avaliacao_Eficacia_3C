@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle, XCircle, MinusCircle, AlertTriangle, Plus } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, MinusCircle, AlertTriangle, Plus, ClipboardList } from 'lucide-react';
 import { formatDate, formatPct } from '@/lib/utils';
 import { levelLabel, metDesiredLevel, type SkillLevel } from '@/lib/ranges';
 
@@ -22,6 +22,7 @@ interface Answer {
 
 interface Collaborator {
   id: number;
+  employee_id: number | null;
   employee_name: string;
   desired_level: SkillLevel;
   achieved_level: SkillLevel;
@@ -45,13 +46,16 @@ interface Evaluation {
   training_full: string;
   category: string;
   unit: string;
+  unit_id: number;
 }
+
+interface PlanStub { id: number; eval_collaborator_id: number | null; }
 
 export default function EvaluationDetailPage({ params }: { params: { id: string } }) {
   const [data, setData] = useState<{ evaluation: Evaluation; collaborators: Collaborator[]; answers: Answer[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [plansCount, setPlansCount] = useState(0);
+  const [plans, setPlans] = useState<PlanStub[]>([]);
 
   useEffect(() => {
     fetch(`/api/avaliacoes/${params.id}`)
@@ -64,7 +68,7 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
     if (!data) return;
     fetch(`/api/planos?evaluation_id=${params.id}`)
       .then(r => r.json())
-      .then(rows => setPlansCount(Array.isArray(rows) ? rows.length : 0))
+      .then(rows => setPlans(Array.isArray(rows) ? rows : []))
       .catch(() => {});
   }, [data, params.id]);
 
@@ -83,8 +87,10 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
 
   const { evaluation: ev, collaborators, answers } = data;
   const metCount = collaborators.filter(c => metDesiredLevel(c.desired_level, c.achieved_level)).length;
+  const withGap  = collaborators.filter(c => c.gap > 0);
 
   const answersForCollab = (cid: number) => answers.filter(a => a.collaborator_id === cid);
+  const planForCollab    = (cid: number) => plans.find(p => p.eval_collaborator_id === cid);
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -125,38 +131,17 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Action plan banner */}
-      {collaborators.some(c => c.gap > 0) && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <AlertTriangle size={18} className="text-orange-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-semibold text-orange-800 text-sm">
-                {collaborators.filter(c => c.gap > 0).length} colaborador(es) com GAP identificado
-              </p>
-              <p className="text-xs text-orange-600 mt-0.5">
-                {plansCount > 0
-                  ? `${plansCount} plano(s) de ação criado(s) para esta avaliação`
-                  : 'Nenhum plano de ação criado ainda'}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            {plansCount > 0 && (
-              <Link
-                href="/planos"
-                className="text-xs text-orange-700 border border-orange-300 rounded-xl px-3 py-2 hover:bg-orange-100 font-medium transition-colors"
-              >
-                Ver planos
-              </Link>
-            )}
-            <Link
-              href={`/planos/nova?avaliacao=${ev.id}`}
-              className="flex items-center gap-1.5 text-xs bg-brand-600 text-white rounded-xl px-3 py-2 hover:bg-brand-700 font-semibold transition-colors"
-            >
-              <Plus size={13} />
-              Criar Plano de Ação
-            </Link>
+      {/* GAP summary banner */}
+      {withGap.length > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-3">
+          <AlertTriangle size={17} className="text-orange-500 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold text-orange-800 text-sm">
+              {withGap.length} colaborador(es) abaixo da meta — crie um plano de ação individual para cada um
+            </p>
+            <p className="text-xs text-orange-600 mt-0.5">
+              Use o botão <strong>Criar Plano</strong> na linha do colaborador na tabela abaixo.
+            </p>
           </div>
         </div>
       )}
@@ -177,13 +162,16 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">% Acerto</th>
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">GAP</th>
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">Status</th>
+                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {collaborators.map(c => {
-                const met = metDesiredLevel(c.desired_level, c.achieved_level);
+                const met    = metDesiredLevel(c.desired_level, c.achieved_level);
+                const plan   = planForCollab(c.id);
+                const hasGap = c.gap > 0;
                 return (
-                  <tr key={c.id} className="border-b border-gray-50">
+                  <tr key={c.id} className={`border-b border-gray-50 ${hasGap ? 'bg-red-50/30' : ''}`}>
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-800">{c.employee_name}</p>
                       {c.position && <p className="text-xs text-gray-400">{c.position}</p>}
@@ -204,8 +192,8 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
                         {formatPct(c.percentage)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-500">
-                      {c.gap > 0 ? (
+                    <td className="px-4 py-3 text-center">
+                      {hasGap ? (
                         <span className="text-red-500 font-medium">{formatPct(c.gap)}</span>
                       ) : (
                         <span className="text-green-500">—</span>
@@ -220,6 +208,25 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
                         <span className="inline-flex items-center gap-1 text-xs text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
                           <XCircle size={11} /> Não atingiu
                         </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {hasGap && (
+                        plan ? (
+                          <Link
+                            href={`/planos?eval_collaborator_id=${c.id}`}
+                            className="inline-flex items-center gap-1 text-[11px] text-green-700 bg-green-50 border border-green-200 rounded-lg px-2.5 py-1 hover:bg-green-100 transition-colors font-semibold whitespace-nowrap"
+                          >
+                            <ClipboardList size={11} /> Ver Plano
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/planos/nova?avaliacao=${ev.id}&colaborador=${c.id}`}
+                            className="inline-flex items-center gap-1 text-[11px] text-white bg-brand-600 rounded-lg px-2.5 py-1 hover:bg-brand-700 transition-colors font-semibold whitespace-nowrap"
+                          >
+                            <Plus size={11} /> Criar Plano
+                          </Link>
+                        )
                       )}
                     </td>
                   </tr>

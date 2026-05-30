@@ -8,10 +8,11 @@ export async function GET(req: NextRequest) {
   seedDatabase(db);
 
   const { searchParams } = new URL(req.url);
-  const unit     = searchParams.get('unit') || '';
-  const resp     = searchParams.get('responsible') || '';
-  const status   = searchParams.get('status') || '';
-  const evalId   = searchParams.get('evaluation_id') || '';
+  const unit      = searchParams.get('unit') || '';
+  const resp      = searchParams.get('responsible') || '';
+  const status    = searchParams.get('status') || '';
+  const evalId    = searchParams.get('evaluation_id') || '';
+  const collabId  = searchParams.get('eval_collaborator_id') || '';
 
   let sql = `
     SELECT ap.*,
@@ -39,6 +40,10 @@ export async function GET(req: NextRequest) {
     sql += ' AND ap.evaluation_id = ?';
     params.push(Number(evalId));
   }
+  if (collabId) {
+    sql += ' AND ap.eval_collaborator_id = ?';
+    params.push(Number(collabId));
+  }
 
   sql += ' ORDER BY ap.created_at DESC';
 
@@ -51,7 +56,8 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   const {
-    evaluation_id, training_name, unit_id, unit_name,
+    evaluation_id, eval_collaborator_id, employee_name,
+    training_name, unit_id, unit_name,
     gap_summary, collaborators_with_gap, avg_gap,
     what, why, how, responsible, due_date,
     where_field, resources, status, priority, notes,
@@ -63,12 +69,14 @@ export async function POST(req: NextRequest) {
 
   const result = db.prepare(`
     INSERT INTO action_plans
-      (evaluation_id, training_name, unit_id, unit_name, gap_summary,
+      (evaluation_id, eval_collaborator_id, employee_name,
+       training_name, unit_id, unit_name, gap_summary,
        collaborators_with_gap, avg_gap, what, why, how, responsible,
        due_date, where_field, resources, status, priority, notes)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
   `).run(
-    evaluation_id, training_name, unit_id ?? null, unit_name,
+    evaluation_id, eval_collaborator_id ?? null, employee_name ?? null,
+    training_name, unit_id ?? null, unit_name,
     gap_summary ?? null, collaborators_with_gap ?? 0, avg_gap ?? 0,
     what, why ?? null, how, responsible, due_date,
     where_field ?? null, resources ?? null,
