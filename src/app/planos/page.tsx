@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User, Lock } from 'lucide-react';
@@ -76,6 +77,8 @@ function PlanosContent() {
   const [deleting, setDeleting] = useState(false);
 
   const [filters, setFilters] = useState({ search: '', unit: '', responsible: '', status: '', collabId: initCollabId });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -151,9 +154,9 @@ function PlanosContent() {
 
   return (
     <div className="space-y-6">
-      {/* Delete password modal */}
-      {deleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      {/* Delete password modal — rendered via portal to escape overflow/stacking context */}
+      {mounted && deleteModal && createPortal(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
@@ -192,7 +195,8 @@ function PlanosContent() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
