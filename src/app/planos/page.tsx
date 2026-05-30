@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User } from 'lucide-react';
+import { Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface Plan {
@@ -141,12 +141,6 @@ function PlanosContent() {
           <h2 className="font-display text-2xl font-bold text-brand-800">Planos de Ação</h2>
           <p className="text-sm text-brand-muted mt-0.5">Gestão de ações corretivas por gap de treinamento</p>
         </div>
-        <Link
-          href="/planos/nova"
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm shrink-0"
-        >
-          <Plus size={16} /> Novo Plano
-        </Link>
       </div>
 
       {/* KPIs */}
