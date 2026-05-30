@@ -2,6 +2,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
+const ADMIN_PASSWORD = 'Tres@2026';
+
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
   const db = await getDb();
   const row = await db.get('SELECT * FROM action_plans WHERE id = ?', [Number(params.id)]);
@@ -31,7 +33,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const password = req.headers.get('x-admin-password');
+  if (password !== ADMIN_PASSWORD) {
+    return NextResponse.json({ error: 'Senha de administrador incorreta' }, { status: 401 });
+  }
   const db = await getDb();
   await db.run('DELETE FROM action_plans WHERE id = ?', [Number(params.id)]);
   return NextResponse.json({ ok: true });
