@@ -40,3 +40,20 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   return NextResponse.json({ evaluation, collaborators, answers });
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const db = getDb();
+  const id = Number(params.id);
+  if (!id) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
+
+  db.transaction(() => {
+    const collabIds = (db.prepare('SELECT id FROM eval_collaborators WHERE evaluation_id = ?').all(id) as { id: number }[]).map(r => r.id);
+    if (collabIds.length) {
+      db.prepare(`DELETE FROM eval_answers WHERE collaborator_id IN (${collabIds.join(',')})`).run();
+    }
+    db.prepare('DELETE FROM eval_collaborators WHERE evaluation_id = ?').run(id);
+    db.prepare('DELETE FROM evaluations WHERE id = ?').run(id);
+  })();
+
+  return NextResponse.json({ ok: true });
+}

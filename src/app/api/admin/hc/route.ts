@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
   // Unit cache: UPPER(name) → id
   const unitCache: Record<string, number | null> = {};
   function getOrCreateUnit(name: string, regional?: string, directorship?: string, filial?: string): number | null {
-    if (!name) return null;
+    if (!name || name.trim() === '' || name.trim() === '-') return null;
     const key = name.trim().toUpperCase();
     if (key in unitCache) return unitCache[key];
     const row = db.prepare('SELECT id FROM units WHERE UPPER(name) = ?').get(key) as { id: number } | undefined;
