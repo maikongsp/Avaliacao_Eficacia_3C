@@ -1,11 +1,10 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, DbClient } from '@/lib/db';
 import * as XLSX from 'xlsx';
 
 const HC_PASSWORD = 'Tres@2026';
 
-// Exact column names from the HC / Detalhe15 file (uppercase for comparison)
 const COL_ALIASES = {
   name:        ['COLABORADOR', 'NM_COLABORADOR', 'NOME', 'NOME DO COLABORADOR'],
   registration:['MATRICULA', 'MATRÍCULA', 'NR_MAT', 'NR. MAT', 'NR. MATRÍCULA'],
@@ -21,12 +20,10 @@ const COL_ALIASES = {
 };
 
 function findColIdx(headers: string[], aliases: string[]): number {
-  // Exact match first
   for (const alias of aliases) {
     const idx = headers.findIndex(h => h.toUpperCase().trim() === alias.toUpperCase().trim());
     if (idx >= 0) return idx;
   }
-  // Partial match fallback
   for (const alias of aliases) {
     const idx = headers.findIndex(h => h.toUpperCase().trim().includes(alias.toUpperCase().trim()));
     if (idx >= 0) return idx;
@@ -37,13 +34,10 @@ function findColIdx(headers: string[], aliases: string[]): number {
 function normalizeDate(val: unknown): string | null {
   if (!val) return null;
   if (typeof val === 'number') {
-    // Excel serial date
     const d = XLSX.SSF.parse_date_code(val);
     if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
   }
-  if (val instanceof Date) {
-    return val.toISOString().slice(0, 10);
-  }
+  if (val instanceof Date) return val.toISOString().slice(0, 10);
   if (typeof val === 'string') {
     const br = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (br) return `${br[3]}-${br[2].padStart(2,'0')}-${br[1].padStart(2,'0')}`;
@@ -75,16 +69,13 @@ export async function POST(req: NextRequest) {
 
   const sheetNames = workbook.SheetNames;
 
-  // Resolve target sheet
   const targetSheet = (formData.get('sheet') as string | null)?.trim() ?? '';
   const normalize   = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
   let sheetName = sheetNames[0];
   if (targetSheet) {
-    // Exact match or trimmed match
     sheetName = sheetNames.find(n => n.trim() === targetSheet.trim()) ?? sheetNames.find(n => normalize(n).includes(normalize(targetSheet))) ?? sheetName;
   } else {
-    // Prefer "Detalhe15" or "HC Maio" automatically
     const det = sheetNames.find(n => normalize(n).startsWith('detalhe'));
     const hc  = sheetNames.find(n => normalize(n).startsWith('hc'));
     sheetName = det ?? hc ?? sheetNames[0];
@@ -93,11 +84,9 @@ export async function POST(req: NextRequest) {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) return NextResponse.json({ error: `Aba "${sheetName}" não encontrada` }, { status: 400 });
 
-  // Parse to rows array
   const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null, raw: false }) as unknown[][];
   if (raw.length < 2) return NextResponse.json({ error: 'Planilha sem dados' }, { status: 400 });
 
-  // Find header row (first row with ≥ 5 non-empty cells)
   let headerIdx = 0;
   for (let i = 0; i < Math.min(10, raw.length); i++) {
     if ((raw[i] as unknown[]).filter(c => c !== null && c !== '').length >= 5) { headerIdx = i; break; }
@@ -124,82 +113,85 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
-  // Filter mode from form
   const filterIndustrial = formData.get('filter_industrial') === '1';
 
-  const db = getDb();
+  const db = await getDb();
 
-  // Unit cache: UPPER(name) → id
+  // In-memory unit cache: UPPER(name) → id
   const unitCache: Record<string, number | null> = {};
-  function getOrCreateUnit(name: string, regional?: string, directorship?: string, filial?: string): number | null {
+  async function getOrCreateUnit(
+    tx: DbClient,
+    name: string,
+    regional?: string,
+    directorship?: string,
+    filial?: string
+  ): Promise<number | null> {
     if (!name || name.trim() === '' || name.trim() === '-') return null;
     const key = name.trim().toUpperCase();
     if (key in unitCache) return unitCache[key];
-    const row = db.prepare('SELECT id FROM units WHERE UPPER(name) = ?').get(key) as { id: number } | undefined;
+    const row = await tx.get<{ id: number }>('SELECT id FROM units WHERE UPPER(name) = ?', [key]);
     if (row) { unitCache[key] = row.id; return row.id; }
-    const res = db.prepare(
-      'INSERT INTO units (name, region, directorship, branch) VALUES (?, ?, ?, ?)'
-    ).run(name.trim(), regional ?? null, directorship ?? 'DIRETORIA INDUSTRIAL', filial ?? null);
-    const newId = Number(res.lastInsertRowid);
+    const res = await tx.run(
+      'INSERT INTO units (name, region, directorship, branch) VALUES (?, ?, ?, ?)',
+      [name.trim(), regional ?? null, directorship ?? 'DIRETORIA INDUSTRIAL', filial ?? null]
+    );
+    const newId = res.lastInsertRowid;
     unitCache[key] = newId;
     return newId;
   }
 
-  const findByReg  = db.prepare('SELECT id FROM employees WHERE registration = ?');
-  const findByName = db.prepare('SELECT id FROM employees WHERE UPPER(name) = ? AND (unit_id = ? OR unit_id IS NULL) LIMIT 1');
-  const insertEmp  = db.prepare(`
-    INSERT INTO employees (name, registration, unit_id, position, section, function_code, admission_date, employment_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-  const updateEmp  = db.prepare(`
-    UPDATE employees
-    SET name=?, unit_id=?, position=?, section=?, function_code=?, admission_date=?, employment_type=?
-    WHERE id=?
-  `);
-
   let inserted = 0, updated = 0, skipped = 0;
   const errors: string[] = [];
 
-  const importAll = db.transaction(() => {
+  await db.transaction(async (tx) => {
     for (let i = headerIdx + 1; i < raw.length; i++) {
       const row = raw[i] as unknown[];
       const name = String(row[iName] ?? '').trim();
       if (!name) { skipped++; continue; }
 
-      // Optional filter: only DIRETORIA INDUSTRIAL
       if (filterIndustrial && iDir >= 0) {
         const dir = String(row[iDir] ?? '').toUpperCase();
         if (!dir.includes('INDUSTRIAL')) { skipped++; continue; }
       }
 
-      const reg     = iReg   >= 0 ? String(row[iReg]    ?? '').trim() : '';
-      const unitNm  = iUnit  >= 0 ? String(row[iUnit]   ?? '').trim() : '';
-      const pos     = iPos   >= 0 ? String(row[iPos]    ?? '').trim() : '';
-      const sec     = iSec   >= 0 ? String(row[iSec]    ?? '').trim() : '';
-      const func    = iFunc  >= 0 ? String(row[iFunc]   ?? '').trim() : '';
-      const adm     = iAdm   >= 0 ? normalizeDate(row[iAdm]) : null;
-      const type    = iType  >= 0 ? String(row[iType]   ?? '').trim() : '';
-      const dir     = iDir   >= 0 ? String(row[iDir]    ?? '').trim() : '';
-      const reg2    = iReg2  >= 0 ? String(row[iReg2]   ?? '').trim() : '';
-      const filial  = iFilial>= 0 ? String(row[iFilial] ?? '').trim() : '';
-      const unitId  = getOrCreateUnit(unitNm, reg2, dir || undefined, filial || undefined);
+      const reg    = iReg    >= 0 ? String(row[iReg]    ?? '').trim() : '';
+      const unitNm = iUnit   >= 0 ? String(row[iUnit]   ?? '').trim() : '';
+      const pos    = iPos    >= 0 ? String(row[iPos]    ?? '').trim() : '';
+      const sec    = iSec    >= 0 ? String(row[iSec]    ?? '').trim() : '';
+      const func   = iFunc   >= 0 ? String(row[iFunc]   ?? '').trim() : '';
+      const adm    = iAdm    >= 0 ? normalizeDate(row[iAdm]) : null;
+      const type   = iType   >= 0 ? String(row[iType]   ?? '').trim() : '';
+      const dir    = iDir    >= 0 ? String(row[iDir]    ?? '').trim() : '';
+      const reg2   = iReg2   >= 0 ? String(row[iReg2]   ?? '').trim() : '';
+      const filial = iFilial >= 0 ? String(row[iFilial] ?? '').trim() : '';
+      const unitId = await getOrCreateUnit(tx, unitNm, reg2, dir || undefined, filial || undefined);
 
       try {
         let existingId: number | null = null;
 
         if (reg) {
-          const found = findByReg.get(reg) as { id: number } | undefined;
+          const found = await tx.get<{ id: number }>('SELECT id FROM employees WHERE registration = ?', [reg]);
           if (found) existingId = found.id;
         } else {
-          const found = findByName.get(name.toUpperCase(), unitId) as { id: number } | undefined;
+          const found = await tx.get<{ id: number }>(
+            'SELECT id FROM employees WHERE UPPER(name) = ? AND (unit_id = ? OR unit_id IS NULL) LIMIT 1',
+            [name.toUpperCase(), unitId]
+          );
           if (found) existingId = found.id;
         }
 
         if (existingId) {
-          updateEmp.run(name, unitId, pos || null, sec || null, func || null, adm, type || null, existingId);
+          await tx.run(
+            `UPDATE employees SET name=?, unit_id=?, position=?, section=?, function_code=?, admission_date=?, employment_type=? WHERE id=?`,
+            [name, unitId, pos || null, sec || null, func || null, adm, type || null, existingId]
+          );
           updated++;
         } else {
-          insertEmp.run(name, reg || null, unitId, pos || null, sec || null, func || null, adm, type || null);
+          await tx.run(
+            `INSERT INTO employees (name, registration, unit_id, position, section, function_code, admission_date, employment_type)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [name, reg || null, unitId, pos || null, sec || null, func || null, adm, type || null]
+          );
           inserted++;
         }
       } catch (e) {
@@ -208,9 +200,7 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  importAll();
-
-  const total = await db.prepare('SELECT COUNT(*) as c FROM employees').get() as { c: number };
+  const total = await db.get<{ c: number }>('SELECT COUNT(*) as c FROM employees');
 
   return NextResponse.json({
     ok: true,
@@ -220,16 +210,16 @@ export async function POST(req: NextRequest) {
     updated,
     skipped,
     errors,
-    totalInDb: total.c,
+    totalInDb: total?.c ?? 0,
     detectedColumns: {
-      name:         iName   >= 0 ? headers[iName]   : null,
-      registration: iReg    >= 0 ? headers[iReg]    : null,
-      unit:         iUnit   >= 0 ? headers[iUnit]   : null,
-      position:     iPos    >= 0 ? headers[iPos]    : null,
-      section:      iSec    >= 0 ? headers[iSec]    : null,
-      funcCode:     iFunc   >= 0 ? headers[iFunc]   : null,
-      admDate:      iAdm    >= 0 ? headers[iAdm]    : null,
-      empType:      iType   >= 0 ? headers[iType]   : null,
+      name:         iName    >= 0 ? headers[iName]    : null,
+      registration: iReg     >= 0 ? headers[iReg]     : null,
+      unit:         iUnit    >= 0 ? headers[iUnit]    : null,
+      position:     iPos     >= 0 ? headers[iPos]     : null,
+      section:      iSec     >= 0 ? headers[iSec]     : null,
+      funcCode:     iFunc    >= 0 ? headers[iFunc]    : null,
+      admDate:      iAdm     >= 0 ? headers[iAdm]     : null,
+      empType:      iType    >= 0 ? headers[iType]    : null,
     },
   });
 }

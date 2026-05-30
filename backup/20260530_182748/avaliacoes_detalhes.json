@@ -1,0 +1,210 @@
+[
+  {
+    "evaluation": {
+      "id": 1,
+      "evaluator_email": "anacsantos@3coracoes.com.br",
+      "evaluator_name": "Ana Carolina Santos",
+      "evaluation_date": "2026-05-26",
+      "training_date": "2026-05-07",
+      "training_id": 8,
+      "unit_id": 8,
+      "created_at": "2026-05-30 18:26:31",
+      "training": "Meio Ambiente | Utilizar Kit de Mitigação Ambiental",
+      "training_full": "Meio Ambiente | Utilizar Kit de Mitigação Ambiental",
+      "category": "Meio Ambiente",
+      "unit": "EUSEBIO FABRICA"
+    },
+    "collaborators": [
+      {
+        "id": 1,
+        "evaluation_id": 1,
+        "employee_id": 11,
+        "employee_name": "ANTONIO DIEGO DELFINO NUNES",
+        "desired_level": "INTERDEPENDENTE",
+        "achieved_level": "INDEPENDENTE",
+        "total_questions": 4,
+        "correct_answers": 2,
+        "percentage": 0.5,
+        "gap": 0.5,
+        "is_effective": 1,
+        "ineffective_reason": null,
+        "has_height_work": 0,
+        "has_confined_work": 0,
+        "registration": "1-53511",
+        "position": "CONSULTOR DE FOOD SOLUTIONS II",
+        "section": "FOOD SERVICE - DT 21 TCOR",
+        "unit_name": "RECIFE"
+      }
+    ],
+    "answers": [
+      {
+        "id": 1,
+        "collaborator_id": 1,
+        "question_id": 1,
+        "question_text": "O colaborador utiliza técnicas seguras e equipamentos adequados para levantar, transportar e depositar materiais? (NR 11)",
+        "answer": "CONFORME",
+        "question_type": "safety_nr11"
+      },
+      {
+        "id": 2,
+        "collaborator_id": 1,
+        "question_id": 2,
+        "question_text": "Dispositivos de segurança da máquina/equipamento estão ativos e sendo utilizados corretamente? (NR 12)",
+        "answer": "NAO_CONFORME",
+        "question_type": "safety_nr12"
+      },
+      {
+        "id": 3,
+        "collaborator_id": 1,
+        "question_id": 3,
+        "question_text": "O colaborador dispõe de todos os recursos necessários para realizar a tarefa sem improvisações e demonstra conhecimento dos riscos e utilização correta dos equipamentos de segurança?",
+        "answer": "CONFORME",
+        "question_type": "safety_general"
+      },
+      {
+        "id": 4,
+        "collaborator_id": 1,
+        "question_id": 15,
+        "question_text": "O colaborador possui clareza sobre a localização dos recursos de emergência ambiental e sabe como reagir prontamente em caso de derramamentos ou vazamentos?",
+        "answer": "NAO_CONFORME",
+        "question_type": "tecnica"
+      }
+    ]
+  },
+  {
+    "evaluation": {
+      "id": 2,
+      "evaluator_email": "anacsantos@3coracoes.com.br",
+      "evaluator_name": "Ana Carolina Santos",
+      "evaluation_date": "2026-05-26",
+      "training_date": "2026-05-03",
+      "training_id": 2,
+      "unit_id": 15,
+      "created_at": "2026-05-30 18:26:31",
+      "training": "APPCC - Análise De Perigos E Pontos Críticos De Controle",
+      "training_full": "APPCC - Análise De Perigos E Pontos Críticos De Controle",
+      "category": "Qualidade",
+      "unit": "MOSSORO MOINHO"
+    },
+    "collaborators": [
+      {
+        "id": 2,
+        "evaluation_id": 2,
+        "employee_id": 16,
+        "employee_name": "ALEX MAX SILVA FERINO",
+        "desired_level": "DEPENDENTE",
+        "achieved_level": "INDEPENDENTE",
+        "total_questions": 2,
+        "correct_answers": 1,
+        "percentage": 0.5,
+        "gap": 0,
+        "is_effective": 1,
+        "ineffective_reason": null,
+        "has_height_work": 0,
+        "has_confined_work": 0,
+        "registration": "2-30150",
+        "position": "OPERADOR DE MOINHO",
+        "section": "MOAGEM",
+        "unit_name": "MOSSORO MOINHO"
+      }
+    ],
+    "answers": [
+      {
+        "id": 5,
+        "collaborator_id": 2,
+        "question_id": 3,
+        "question_text": "O colaborador dispõe de todos os recursos necessários para realizar a tarefa sem improvisações e demonstra conhecimento dos riscos e utilização correta dos equipamentos de segurança?",
+        "answer": "NAO_CONFORME",
+        "question_type": "safety_general"
+      },
+      {
+        "id": 6,
+        "collaborator_id": 2,
+        "question_id": 9,
+        "question_text": "O colaborador demonstra conhecimento sobre os perigos (físicos, químicos ou biológicos) inerentes à sua atividade e sabe como agir ou a quem reportar caso identifique uma falha no processo que possa comprometer a segurança do produto?",
+        "answer": "CONFORME",
+        "question_type": "tecnica"
+      }
+    ]
+  },
+  {
+    "evaluation": {
+      "id": 3,
+      "evaluator_email": "anacsantos@3coracoes.com.br",
+      "evaluator_name": "Ana Carolina Santos",
+      "evaluation_date": "2026-05-27",
+      "training_date": "2026-05-13",
+      "training_id": 11,
+      "unit_id": 14,
+      "created_at": "2026-05-30 18:26:31",
+      "training": "T.F Produção | Controle, Manuseio de cafes, Movimentação, Armazenamento, Embalagem, Preservação e Entrega",
+      "training_full": "T.F Produção | Controle, Manuseio de cafes, Movimentação, Armazenamento, Embalagem, Preservação e Entrega",
+      "category": "Técnico da Função - Produção",
+      "unit": "MOSSORO FRISCO"
+    },
+    "collaborators": [
+      {
+        "id": 3,
+        "evaluation_id": 3,
+        "employee_id": 19,
+        "employee_name": "BRUNO GABRIEL MELO COSTA",
+        "desired_level": "DEPENDENTE",
+        "achieved_level": "INDEPENDENTE",
+        "total_questions": 5,
+        "correct_answers": 3,
+        "percentage": 0.6,
+        "gap": 0,
+        "is_effective": 1,
+        "ineffective_reason": null,
+        "has_height_work": 0,
+        "has_confined_work": 0,
+        "registration": "2-40300",
+        "position": "OPERADOR DE PRODUCAO I",
+        "section": "PRODUCAO",
+        "unit_name": "MOSSORO FRISCO"
+      }
+    ],
+    "answers": [
+      {
+        "id": 7,
+        "collaborator_id": 3,
+        "question_id": 1,
+        "question_text": "O colaborador utiliza técnicas seguras e equipamentos adequados para levantar, transportar e depositar materiais? (NR 11)",
+        "answer": "CONFORME",
+        "question_type": "safety_nr11"
+      },
+      {
+        "id": 8,
+        "collaborator_id": 3,
+        "question_id": 3,
+        "question_text": "O colaborador dispõe de todos os recursos necessários para realizar a tarefa sem improvisações e demonstra conhecimento dos riscos e utilização correta dos equipamentos de segurança?",
+        "answer": "NAO_CONFORME",
+        "question_type": "safety_general"
+      },
+      {
+        "id": 9,
+        "collaborator_id": 3,
+        "question_id": 4,
+        "question_text": "O colaborador realiza a inspeção de pré-uso, opera o equipamento sem burlar ou remover as proteções e garante que, em qualquer intervenção, o bloqueio de energias seja rigorosamente aplicado?",
+        "answer": "CONFORME",
+        "question_type": "safety_lockout"
+      },
+      {
+        "id": 10,
+        "collaborator_id": 3,
+        "question_id": 5,
+        "question_text": "O procedimento avaliado possui trabalho em altura, em espaço confinado ou os dois?",
+        "answer": "CONFORME",
+        "question_type": "height_confined_check"
+      },
+      {
+        "id": 11,
+        "collaborator_id": 3,
+        "question_id": 6,
+        "question_text": "O colaborador demonstra pleno conhecimento dos procedimentos de segurança e utiliza corretamente todos os equipamentos de proteção (cinto, trava-quedas, etc.) em atividades com altura igual ou superior a 2 metros? (Trabalho em Altura)",
+        "answer": "CONFORME",
+        "question_type": "height_exec"
+      }
+    ]
+  }
+]

@@ -14,7 +14,7 @@ const nextConfig = {
 
     if (isServer) {
       config.externals = config.externals || [];
-      config.externals.push('better-sqlite3', 'xlsx');
+      config.externals.push('better-sqlite3', 'xlsx', 'pg', 'pg-native');
     }
 
     return config;

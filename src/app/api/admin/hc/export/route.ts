@@ -14,60 +14,49 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Senha incorreta' }, { status: 401 });
   }
 
-  const db = getDb();
+  const db = await getDb();
 
-  const employees = db.prepare(`
+  const employees = await db.all<Record<string, string | null>>(`
     SELECT
-      e.registration   AS NR_MAT,
-      e.name           AS NM_COLABORADOR,
-      u.name           AS DS_UNIDADE,
-      e.position       AS DS_CARGO,
-      e.section        AS DS_SECAO,
-      e.function_code  AS DS_FUNCAO_COD,
-      e.admission_date AS DT_ADMISSAO,
-      e.employment_type AS TP_VINCULO
+      e.registration   AS "NR_MAT",
+      e.name           AS "NM_COLABORADOR",
+      u.name           AS "DS_UNIDADE",
+      e.position       AS "DS_CARGO",
+      e.section        AS "DS_SECAO",
+      e.function_code  AS "DS_FUNCAO_COD",
+      e.admission_date AS "DT_ADMISSAO",
+      e.employment_type AS "TP_VINCULO"
     FROM employees e
     LEFT JOIN units u ON u.id = e.unit_id
     ORDER BY u.name, e.name
-  `).all() as Record<string, string | null>[];
+  `);
 
   const now = new Date();
   const sheetName = `HC ${MONTHS_PT[now.getMonth()]}`;
 
   const wb = XLSX.utils.book_new();
 
-  // ── Sheet 1: HC (dados para reimportação) ──
   const hcRows = employees.map(e => ({
-    NR_MAT:          e.NR_MAT          ?? '',
-    NM_COLABORADOR:  e.NM_COLABORADOR  ?? '',
-    DS_UNIDADE:      e.DS_UNIDADE      ?? '',
-    DS_CARGO:        e.DS_CARGO        ?? '',
-    DS_SECAO:        e.DS_SECAO        ?? '',
-    DS_FUNCAO_COD:   e.DS_FUNCAO_COD   ?? '',
-    DT_ADMISSAO:     e.DT_ADMISSAO     ?? '',
-    TP_VINCULO:      e.TP_VINCULO      ?? '',
+    NR_MAT:          e['NR_MAT']          ?? '',
+    NM_COLABORADOR:  e['NM_COLABORADOR']  ?? '',
+    DS_UNIDADE:      e['DS_UNIDADE']      ?? '',
+    DS_CARGO:        e['DS_CARGO']        ?? '',
+    DS_SECAO:        e['DS_SECAO']        ?? '',
+    DS_FUNCAO_COD:   e['DS_FUNCAO_COD']   ?? '',
+    DT_ADMISSAO:     e['DT_ADMISSAO']     ?? '',
+    TP_VINCULO:      e['TP_VINCULO']      ?? '',
   }));
 
   const wsHC = XLSX.utils.json_to_sheet(hcRows);
-
-  // Style column widths
   wsHC['!cols'] = [
-    { wch: 14 }, // NR_MAT
-    { wch: 40 }, // NM_COLABORADOR
-    { wch: 28 }, // DS_UNIDADE
-    { wch: 35 }, // DS_CARGO
-    { wch: 30 }, // DS_SECAO
-    { wch: 14 }, // DS_FUNCAO_COD
-    { wch: 14 }, // DT_ADMISSAO
-    { wch: 12 }, // TP_VINCULO
+    { wch: 14 }, { wch: 40 }, { wch: 28 }, { wch: 35 },
+    { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 12 },
   ];
-
   XLSX.utils.book_append_sheet(wb, wsHC, sheetName);
 
-  // ── Sheet 2: Detalhe15 (formato enriquecido com resumo por unidade) ──
   const unitMap: Record<string, { total: number }> = {};
   for (const e of employees) {
-    const u = e.DS_UNIDADE ?? 'SEM UNIDADE';
+    const u = e['DS_UNIDADE'] ?? 'SEM UNIDADE';
     if (!unitMap[u]) unitMap[u] = { total: 0 };
     unitMap[u].total++;
   }
@@ -85,7 +74,6 @@ export async function POST(req: NextRequest) {
   XLSX.utils.book_append_sheet(wb, wsDet, 'Detalhe15-Diretoria Industrial');
 
   const buf = Buffer.from(XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer);
-
   const filename = `HC_DiretoriaIndustrial_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}.xlsx`;
 
   return new NextResponse(buf, {

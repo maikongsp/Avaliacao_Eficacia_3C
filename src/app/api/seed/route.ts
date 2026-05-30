@@ -5,8 +5,8 @@ import { seedDatabase } from '@/lib/seed';
 
 export async function POST() {
   try {
-    const db = getDb();
-    seedDatabase(db);
+    const db = await getDb();
+    await seedDatabase(db);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error(err);

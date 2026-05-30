@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User } from 'lucide-react';
+import { Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User, Lock } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 interface Plan {
@@ -71,8 +72,13 @@ function PlanosContent() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ id: number; error: string } | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const [filters, setFilters] = useState({ search: '', unit: '', responsible: '', status: '', collabId: initCollabId });
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -122,9 +128,22 @@ function PlanosContent() {
     setUpdating(null);
   }
 
-  async function deletePlan(id: number) {
-    if (!confirm('Excluir este plano de ação?')) return;
-    await fetch(`/api/planos/${id}`, { method: 'DELETE' });
+  async function confirmDelete() {
+    if (!deleteModal || !deletePassword) return;
+    setDeleting(true);
+    const res = await fetch(`/api/planos/${deleteModal.id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-password': deletePassword },
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setDeleteModal({ ...deleteModal, error: data.error || 'Senha incorreta' });
+      setDeleting(false);
+      return;
+    }
+    setDeleteModal(null);
+    setDeletePassword('');
+    setDeleting(false);
     load();
   }
 
@@ -135,6 +154,50 @@ function PlanosContent() {
 
   return (
     <div className="space-y-6">
+      {/* Delete password modal — rendered via portal to escape overflow/stacking context */}
+      {mounted && deleteModal && createPortal(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999] p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <Lock size={18} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Excluir Plano de Ação</h3>
+                <p className="text-sm text-gray-500 mt-1">Esta ação não pode ser desfeita. Digite a senha de administrador para confirmar.</p>
+              </div>
+            </div>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => setDeletePassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && confirmDelete()}
+              placeholder="Senha de administrador"
+              autoFocus
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+            />
+            {deleteModal.error && (
+              <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-1.5">{deleteModal.error}</p>
+            )}
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setDeleteModal(null); setDeletePassword(''); }}
+                className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleting || !deletePassword}
+                className="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:opacity-60 transition-colors"
+              >
+                {deleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -294,13 +357,13 @@ function PlanosContent() {
                             </button>
                           )}
                           <Link
-                            href={`/planos/nova?avaliacao=${plan.evaluation_id}${plan.eval_collaborator_id ? `&colaborador=${plan.eval_collaborator_id}` : ''}`}
+                            href={`/planos/${plan.id}/editar`}
                             className="text-[11px] text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition-colors"
                           >
                             Editar
                           </Link>
                           <button
-                            onClick={() => deletePlan(plan.id)}
+                            onClick={() => { setDeleteModal({ id: plan.id, error: '' }); setDeletePassword(''); }}
                             className="text-[11px] text-red-400 hover:text-red-600 border border-red-100 rounded-lg px-2.5 py-1 hover:bg-red-50 transition-colors"
                           >
                             Excluir
