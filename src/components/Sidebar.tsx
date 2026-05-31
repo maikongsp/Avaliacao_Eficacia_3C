@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X, Target, DatabaseZap } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X, Target, DatabaseZap, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const nav = [
@@ -11,8 +11,9 @@ const nav = [
   { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus            },
   { href: '/colaboradores',   label: 'Colaboradores',  icon: Users           },
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
-  { href: '/planos',          label: 'Planos de Ação', icon: Target          },
-  { href: '/admin/hc',        label: 'Atualizar HC',   icon: DatabaseZap     },
+  { href: '/planos',            label: 'Planos de Ação', icon: Target          },
+  { href: '/admin/perguntas',   label: 'Questões',       icon: HelpCircle      },
+  { href: '/admin/hc',          label: 'Atualizar HC',   icon: DatabaseZap     },
 ];
 
 interface SidebarProps {
