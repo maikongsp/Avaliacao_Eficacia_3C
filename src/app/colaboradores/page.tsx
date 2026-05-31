@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import { AuthGuard } from '@/components/AuthGuard';
 import { Search, Filter, ChevronDown, CheckCircle2, XCircle, AlertCircle, Target } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -23,7 +24,7 @@ interface Unit { id: number; name: string; }
 
 const sel = 'w-full border border-red-100 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-300 appearance-none';
 
-export default function ColaboradoresPage() {
+function ColaboradoresPageContent() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -252,5 +253,13 @@ export default function ColaboradoresPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ColaboradoresPage() {
+  return (
+    <AuthGuard required="gestor">
+      <ColaboradoresPageContent />
+    </AuthGuard>
   );
 }

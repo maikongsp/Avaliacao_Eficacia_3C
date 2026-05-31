@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthGuard } from '@/components/AuthGuard';
 import { Plus, Trash2, Search, ChevronDown, ChevronUp, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type SkillLevel } from '@/lib/ranges';
@@ -76,7 +77,7 @@ function AnswerBtn({ value, current, onChange, label, icon: Icon, color }: {
   );
 }
 
-export default function NovaAvaliacaoPage() {
+function NovaAvaliacaoPageContent() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -663,5 +664,13 @@ export default function NovaAvaliacaoPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NovaAvaliacaoPage() {
+  return (
+    <AuthGuard required="gestor">
+      <NovaAvaliacaoPageContent />
+    </AuthGuard>
   );
 }

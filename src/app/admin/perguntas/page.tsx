@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { AuthGuard } from '@/components/AuthGuard';
 import {
   ArrowLeft, Plus, Search, Edit2, Trash2, Link2, Lock,
   X, Save, RefreshCw, ChevronDown, CheckCircle2, AlertCircle,
@@ -38,7 +39,7 @@ const TYPE_STYLE: Record<string, string> = {
 const inp = 'w-full border border-red-100 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-300';
 const labelCls = 'block text-xs font-semibold text-brand-muted uppercase tracking-wide mb-1';
 
-export default function AdminPerguntasPage() {
+function AdminPerguntasPageContent() {
   const [questions, setQuestions]   = useState<Question[]>([]);
   const [trainings, setTrainings]   = useState<Training[]>([]);
   const [loading, setLoading]       = useState(true);
@@ -623,5 +624,14 @@ export default function AdminPerguntasPage() {
         document.body
       )}
     </div>
+  );
+}
+
+
+export default function AdminPerguntasPage() {
+  return (
+    <AuthGuard required="admin">
+      <AdminPerguntasPageContent />
+    </AuthGuard>
   );
 }

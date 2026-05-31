@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { AuthGuard } from '@/components/AuthGuard';
 import {
   ArrowLeft, Lock, Upload, CheckCircle2, XCircle,
   AlertCircle, FileSpreadsheet, RefreshCw, ChevronDown, Download,
@@ -19,7 +20,7 @@ interface ImportResult {
   error?: string;
 }
 
-export default function AdminHCPage() {
+function AdminHCPageContent() {
   const [password, setPassword]       = useState('');
   const [file, setFile]               = useState<File | null>(null);
   const [sheet, setSheet]             = useState('');
@@ -318,5 +319,13 @@ export default function AdminHCPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminHCPage() {
+  return (
+    <AuthGuard required="admin">
+      <AdminHCPageContent />
+    </AuthGuard>
   );
 }
