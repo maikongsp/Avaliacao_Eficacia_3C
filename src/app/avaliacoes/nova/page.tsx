@@ -508,6 +508,26 @@ function NovaAvaliacaoPageContent() {
                           </button>
                         ))}
                       </div>
+
+                      {/* Level legend */}
+                      <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 divide-y divide-gray-100 text-[11px] leading-relaxed">
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🔴</span>
+                          <span><strong>Nível 1 (Reativo) — 0% de acertos:</strong> O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🟡</span>
+                          <span><strong>Nível 2 (Dependente) — Entre 17 e 40% de acerto:</strong> O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🟢</span>
+                          <span><strong>Nível 3 (Independente) — Entre 53 e 80% de acerto:</strong> O colaborador possui autonomia operacional, sendo capaz de executar o procedimento nos padrões de qualidade e tempo esperados.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🔵</span>
+                          <span><strong>Nível 4 (Interdependente) — 100% de acertos:</strong> O colaborador demonstra excelência técnica e domínio perfeito do padrão, além de uma visão sistêmica do impacto do seu trabalho no processo. Deve ser avaliado como um possível multiplicador para orientar a equipe.</span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Height/Confined check */}
