@@ -188,11 +188,24 @@ function NovaAvaliacaoPageContent() {
   };
 
   const step1Valid = evaluatorEmail && trainingDate && selectedTraining && selectedUnit;
-  const step2Valid = collaborators.length > 0 && collaborators.every(c => {
-    if (!c.employee_name) return false;
+
+  function collabAnswersValid(c: CollaboratorEntry): boolean {
     const qs = visibleQuestions(c).filter(q => q.type !== 'height_confined_check');
-    return qs.every(q => c.answers[q.id]);
-  });
+    if (!qs.every(q => c.answers[q.id])) return false;
+    // safety_general must be CONFORME or NAO_CONFORME
+    const safetyQ = qs.find(q => q.type === 'safety_general');
+    if (safetyQ && c.answers[safetyQ.id] === 'NA') return false;
+    // at least 1 other question must also be CONFORME or NAO_CONFORME
+    const otherNonNA = qs.filter(q =>
+      q.type !== 'safety_general' &&
+      (c.answers[q.id] === 'CONFORME' || c.answers[q.id] === 'NAO_CONFORME')
+    );
+    return otherNonNA.length >= 1;
+  }
+
+  const step2Valid = collaborators.length > 0 && collaborators.every(c =>
+    c.employee_name ? collabAnswersValid(c) : false
+  );
 
   const submit = async () => {
     setSaving(true);
@@ -562,19 +575,58 @@ function NovaAvaliacaoPageContent() {
                     )}
 
                     {/* Questions */}
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Questões de Avaliação</p>
-                      {qs.filter(q => q.type !== 'height_confined_check').map(q => (
-                        <div key={q.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-                          <p className="text-xs text-gray-700 mb-2 leading-relaxed">{q.text}</p>
-                          <div className="flex gap-2 flex-wrap">
-                            <AnswerBtn value="CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Conforme" icon={CheckCircle} color="green" />
-                            <AnswerBtn value="NAO_CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Não Conforme" icon={XCircle} color="red" />
-                            <AnswerBtn value="NA" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="N/A" icon={MinusCircle} color="gray" />
+                    {(() => {
+                      const scoredQs = qs.filter(q => q.type !== 'height_confined_check');
+                      const nonNACount = scoredQs.filter(q =>
+                        collab.answers[q.id] === 'CONFORME' || collab.answers[q.id] === 'NAO_CONFORME'
+                      ).length;
+                      const needsMore = nonNACount < 2;
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Questões de Avaliação</p>
+                            <span className={cn(
+                              'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                              needsMore
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-green-100 text-green-700'
+                            )}>
+                              {nonNACount}/2 obrigatórias respondidas
+                            </span>
                           </div>
+                          {scoredQs.map(q => {
+                            const isMandatory = q.type === 'safety_general';
+                            return (
+                              <div key={q.id} className={cn(
+                                'border rounded-lg p-3',
+                                isMandatory ? 'border-brand-200 bg-brand-50' : 'border-gray-100 bg-gray-50'
+                              )}>
+                                <div className="flex items-start gap-2 mb-2">
+                                  {isMandatory && (
+                                    <span className="shrink-0 text-[10px] font-bold text-brand-700 bg-brand-100 border border-brand-200 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                      Obrigatória
+                                    </span>
+                                  )}
+                                  <p className="text-xs text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                  <AnswerBtn value="CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Conforme" icon={CheckCircle} color="green" />
+                                  <AnswerBtn value="NAO_CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Não Conforme" icon={XCircle} color="red" />
+                                  {!isMandatory && (
+                                    <AnswerBtn value="NA" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="N/A" icon={MinusCircle} color="gray" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {needsMore && scoredQs.some(q => collab.answers[q.id]) && (
+                            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                              Responda pelo menos mais {2 - nonNACount} questão(ões) com <strong>Conforme</strong> ou <strong>Não Conforme</strong> para prosseguir.
+                            </p>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
 
                     {/* Effectiveness */}
                     <div className="border border-gray-100 rounded-lg p-3">

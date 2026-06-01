@@ -15,3 +15,6 @@ name = "web"
 [environments.production.variables]
 NODE_ENV = "production"
 DATA_DIR = "/data"
+
+[[volumes]]
+mountPath = "/data"
