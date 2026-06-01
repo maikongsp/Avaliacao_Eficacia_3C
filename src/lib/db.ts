@@ -433,9 +433,11 @@ export async function getDb(): Promise<DbClient> {
     await initPgSchema(pool);
     _client = new PgRunner(pool, pool);
   } else {
-    const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+    const dataDir = process.env.DATA_DIR ||
+      (process.env.NODE_ENV === 'production' ? '/data' : path.join(process.cwd(), 'data'));
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     const dbPath = path.join(dataDir, 'training_eval.db');
+    console.log(`[db] SQLite path: ${dbPath}`);
     const sqlite = new Database(dbPath);
     sqlite.pragma('journal_mode = WAL');
     sqlite.pragma('foreign_keys = ON');
