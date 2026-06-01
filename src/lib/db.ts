@@ -242,6 +242,26 @@ function initSqliteSchema(db: Database.Database): void {
   // Migrations for existing databases
   try { db.exec('ALTER TABLE action_plans ADD COLUMN eval_collaborator_id INTEGER REFERENCES eval_collaborators(id)'); } catch { /* already exists */ }
   try { db.exec('ALTER TABLE action_plans ADD COLUMN employee_name TEXT'); } catch { /* already exists */ }
+
+  // Remove T.F category prefixes from training names
+  try {
+    db.exec(`
+      UPDATE trainings SET
+        name      = REPLACE(REPLACE(REPLACE(REPLACE(name,
+          'T.F Produção | ',  ''),
+          'T.F Manutenção | ',''),
+          'T.F GQ | ',        ''),
+          'T.F CQ | ',        '')
+      WHERE name LIKE 'T.F %';
+      UPDATE trainings SET
+        full_name = REPLACE(REPLACE(REPLACE(REPLACE(full_name,
+          'T.F Produção | ',  ''),
+          'T.F Manutenção | ',''),
+          'T.F GQ | ',        ''),
+          'T.F CQ | ',        '')
+      WHERE full_name LIKE 'T.F %';
+    `);
+  } catch { /* ignore */ }
 }
 
 async function initPgSchema(pool: Pool): Promise<void> {
@@ -374,6 +394,26 @@ async function initPgSchema(pool: Pool): Promise<void> {
         created_at             TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at             TEXT DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Remove T.F category prefixes from training names
+    await client.query(`
+      UPDATE trainings SET
+        name = REPLACE(REPLACE(REPLACE(REPLACE(name,
+          'T.F Produção | ',   ''),
+          'T.F Manutenção | ', ''),
+          'T.F GQ | ',         ''),
+          'T.F CQ | ',         '')
+      WHERE name LIKE 'T.F %'
+    `);
+    await client.query(`
+      UPDATE trainings SET
+        full_name = REPLACE(REPLACE(REPLACE(REPLACE(full_name,
+          'T.F Produção | ',   ''),
+          'T.F Manutenção | ', ''),
+          'T.F GQ | ',         ''),
+          'T.F CQ | ',         '')
+      WHERE full_name LIKE 'T.F %'
     `);
   } finally {
     client.release();
