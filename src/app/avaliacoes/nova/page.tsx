@@ -194,13 +194,7 @@ function NovaAvaliacaoPageContent() {
     if (!qs.every(q => c.answers[q.id])) return false;
     // safety_general and tecnica must be CONFORME or NAO_CONFORME
     const mandatory = qs.filter(q => q.type === 'safety_general' || q.type === 'tecnica');
-    if (mandatory.some(q => c.answers[q.id] === 'NA')) return false;
-    // at least 1 other question must also be CONFORME or NAO_CONFORME
-    const otherNonNA = qs.filter(q =>
-      q.type !== 'safety_general' && q.type !== 'tecnica' &&
-      (c.answers[q.id] === 'CONFORME' || c.answers[q.id] === 'NAO_CONFORME')
-    );
-    return otherNonNA.length >= 1;
+    return mandatory.every(q => c.answers[q.id] !== 'NA');
   }
 
   const step2Valid = collaborators.length > 0 && collaborators.every(c =>
@@ -581,13 +575,8 @@ function NovaAvaliacaoPageContent() {
                       const mandatoryAnswered = mandatoryQs.filter(q =>
                         collab.answers[q.id] === 'CONFORME' || collab.answers[q.id] === 'NAO_CONFORME'
                       ).length;
-                      const otherNonNA = scoredQs.filter(q =>
-                        q.type !== 'safety_general' && q.type !== 'tecnica' &&
-                        (collab.answers[q.id] === 'CONFORME' || collab.answers[q.id] === 'NAO_CONFORME')
-                      ).length;
-                      const required = mandatoryQs.length + 1;
-                      const answered = mandatoryAnswered + (otherNonNA >= 1 ? 1 : 0);
-                      const needsMore = answered < required;
+                      const required = mandatoryQs.length;
+                      const needsMore = mandatoryAnswered < required;
                       return (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
@@ -596,7 +585,7 @@ function NovaAvaliacaoPageContent() {
                               'text-[10px] font-semibold px-2 py-0.5 rounded-full',
                               needsMore ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
                             )}>
-                              {answered}/{required} obrigatórias respondidas
+                              {mandatoryAnswered}/{required} obrigatórias respondidas
                             </span>
                           </div>
                           {scoredQs.map(q => {
@@ -626,10 +615,7 @@ function NovaAvaliacaoPageContent() {
                           })}
                           {needsMore && scoredQs.some(q => collab.answers[q.id]) && (
                             <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                              {mandatoryAnswered < mandatoryQs.length
-                                ? `Responda as questões obrigatórias (Técnica e Segurança Geral) com Conforme ou Não Conforme.`
-                                : `Responda pelo menos mais 1 questão com Conforme ou Não Conforme para prosseguir.`
-                              }
+                              Responda as questões obrigatórias (Técnica e Segurança Geral) com Conforme ou Não Conforme.
                             </p>
                           )}
                         </div>
