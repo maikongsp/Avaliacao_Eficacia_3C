@@ -8,15 +8,20 @@ const HC_PASSWORD = 'Tres@2026';
 const COL_ALIASES = {
   name:        ['COLABORADOR', 'NM_COLABORADOR', 'NOME', 'NOME DO COLABORADOR'],
   registration:['MATRICULA', 'MATRÍCULA', 'NR_MAT', 'NR. MAT', 'NR. MATRÍCULA'],
-  unit:        ['UNIDADE', 'DS_UNIDADE', 'NM_UNIDADE', 'FILIAL', 'LOCAL'],
-  position:    ['CARGO', 'DS_CARGO', 'FUNÇÃO', 'FUNCAO', 'DS_FUNCAO'],
+  unit:        ['UNIDADE', 'DS_UNIDADE', 'NM_UNIDADE', 'LOCAL'],
+  // In HC Oficial: CARGO = job title; FUNÇÃO = numeric code (not position label)
+  position:    ['CARGO', 'DS_CARGO', 'DS_FUNCAO'],
   section:     ['SECAO', 'SEÇÃO', 'DS_SECAO', 'SETOR', 'DEPARTAMENTO'],
-  funcCode:    ['COD SECAO', 'CENTRO DE CUSTO', 'COD_FUNCAO', 'DS_FUNCAO_COD'],
+  // In HC Oficial: FUNÇÃO holds the numeric function code (e.g. 20499)
+  funcCode:    ['FUNÇÃO', 'FUNCAO', 'COD SECAO', 'CENTRO DE CUSTO', 'COD_FUNCAO', 'DS_FUNCAO_COD'],
   admDate:     ['DATA DE ADMISSÃO', 'DATA DE ADMISSAO', 'DT_ADMISSAO', 'DT_ADMISSÃO', 'ADMISSÃO'],
-  empType:     ['TIPO DE CONTRATO', 'TIPO', 'TP_VINCULO', 'VÍNCULO', 'VINCULO'],
+  // TIPO (NORMAL/ESTAGIARIO/APRENDIZ) takes priority over TIPO DE CONTRATO (QLP)
+  empType:     ['TIPO', 'TIPO DE CONTRATO', 'TP_VINCULO', 'VÍNCULO', 'VINCULO'],
   diretoria:   ['DIRETORIA'],
   regional:    ['REGIONAL'],
   filial:      ['FILIAL'],
+  tipoNegocio: ['TIPO DE NEGOCIO', 'TIPO DE NEGÓCIO'],
+  situacao:    ['SITUAÇÃO', 'SITUACAO', 'SITUACÃO'],
 };
 
 function findColIdx(headers: string[], aliases: string[]): number {
@@ -35,15 +40,19 @@ function normalizeDate(val: unknown): string | null {
   if (!val) return null;
   if (typeof val === 'number') {
     const d = XLSX.SSF.parse_date_code(val);
-    if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    if (d) return `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
   }
   if (val instanceof Date) return val.toISOString().slice(0, 10);
   if (typeof val === 'string') {
     const br = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (br) return `${br[3]}-${br[2].padStart(2,'0')}-${br[1].padStart(2,'0')}`;
+    if (br) return `${br[3]}-${br[2].padStart(2, '0')}-${br[1].padStart(2, '0')}`;
     if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
   }
   return null;
+}
+
+function cleanStr(val: unknown): string {
+  return String(val ?? '').replace(/[\r\n\t]/g, ' ').trim();
 }
 
 export async function POST(req: NextRequest) {
@@ -68,17 +77,21 @@ export async function POST(req: NextRequest) {
   }
 
   const sheetNames = workbook.SheetNames;
-
   const targetSheet = (formData.get('sheet') as string | null)?.trim() ?? '';
-  const normalize   = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
   let sheetName = sheetNames[0];
   if (targetSheet) {
-    sheetName = sheetNames.find(n => n.trim() === targetSheet.trim()) ?? sheetNames.find(n => normalize(n).includes(normalize(targetSheet))) ?? sheetName;
+    sheetName =
+      sheetNames.find(n => n.trim() === targetSheet.trim()) ??
+      sheetNames.find(n => normalize(n).includes(normalize(targetSheet))) ??
+      sheetName;
   } else {
-    const det = sheetNames.find(n => normalize(n).startsWith('detalhe'));
-    const hc  = sheetNames.find(n => normalize(n).startsWith('hc'));
-    sheetName = det ?? hc ?? sheetNames[0];
+    // Priority: 'HC Oficial' > starts with 'HC' > starts with 'Detalhe'
+    const hcOficial = sheetNames.find(n => normalize(n) === 'hc oficial');
+    const hcAny     = sheetNames.find(n => normalize(n).startsWith('hc'));
+    const det       = sheetNames.find(n => normalize(n).startsWith('detalhe'));
+    sheetName = hcOficial ?? det ?? hcAny ?? sheetNames[0];
   }
 
   const sheet = workbook.Sheets[sheetName];
@@ -89,21 +102,26 @@ export async function POST(req: NextRequest) {
 
   let headerIdx = 0;
   for (let i = 0; i < Math.min(10, raw.length); i++) {
-    if ((raw[i] as unknown[]).filter(c => c !== null && c !== '').length >= 5) { headerIdx = i; break; }
+    if ((raw[i] as unknown[]).filter(c => c !== null && c !== '').length >= 5) {
+      headerIdx = i;
+      break;
+    }
   }
   const headers = (raw[headerIdx] as unknown[]).map(h => String(h ?? '').trim());
 
-  const iName  = findColIdx(headers, COL_ALIASES.name);
-  const iReg   = findColIdx(headers, COL_ALIASES.registration);
-  const iUnit  = findColIdx(headers, COL_ALIASES.unit);
-  const iPos   = findColIdx(headers, COL_ALIASES.position);
-  const iSec   = findColIdx(headers, COL_ALIASES.section);
-  const iFunc  = findColIdx(headers, COL_ALIASES.funcCode);
-  const iAdm   = findColIdx(headers, COL_ALIASES.admDate);
-  const iType  = findColIdx(headers, COL_ALIASES.empType);
-  const iDir   = findColIdx(headers, COL_ALIASES.diretoria);
-  const iReg2  = findColIdx(headers, COL_ALIASES.regional);
-  const iFilial= findColIdx(headers, COL_ALIASES.filial);
+  const iName     = findColIdx(headers, COL_ALIASES.name);
+  const iReg      = findColIdx(headers, COL_ALIASES.registration);
+  const iUnit     = findColIdx(headers, COL_ALIASES.unit);
+  const iPos      = findColIdx(headers, COL_ALIASES.position);
+  const iSec      = findColIdx(headers, COL_ALIASES.section);
+  const iFunc     = findColIdx(headers, COL_ALIASES.funcCode);
+  const iAdm      = findColIdx(headers, COL_ALIASES.admDate);
+  const iType     = findColIdx(headers, COL_ALIASES.empType);
+  const iDir      = findColIdx(headers, COL_ALIASES.diretoria);
+  const iReg2     = findColIdx(headers, COL_ALIASES.regional);
+  const iFilial   = findColIdx(headers, COL_ALIASES.filial);
+  const iTipoNeg  = findColIdx(headers, COL_ALIASES.tipoNegocio);
+  const iSituacao = findColIdx(headers, COL_ALIASES.situacao);
 
   if (iName < 0) {
     return NextResponse.json({
@@ -113,27 +131,38 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
-  const filterIndustrial = formData.get('filter_industrial') === '1';
+  // Filter options
+  const filterFabrica  = formData.get('filter_industrial') === '1';
+  const filterAtivos   = formData.get('filter_ativos')     === '1';
 
   const db = await getDb();
 
-  // In-memory unit cache: UPPER(name) → id
   const unitCache: Record<string, number | null> = {};
   async function getOrCreateUnit(
     tx: DbClient,
     name: string,
     regional?: string,
     directorship?: string,
-    filial?: string
+    filial?: string,
   ): Promise<number | null> {
     if (!name || name.trim() === '' || name.trim() === '-') return null;
     const key = name.trim().toUpperCase();
     if (key in unitCache) return unitCache[key];
     const row = await tx.get<{ id: number }>('SELECT id FROM units WHERE UPPER(name) = ?', [key]);
-    if (row) { unitCache[key] = row.id; return row.id; }
+    if (row) {
+      // Update region/directorship/filial if they changed
+      if (regional || directorship || filial) {
+        await tx.run(
+          `UPDATE units SET region = COALESCE(?, region), directorship = COALESCE(?, directorship), branch = COALESCE(?, branch) WHERE id = ?`,
+          [regional ?? null, directorship ?? null, filial ?? null, row.id]
+        );
+      }
+      unitCache[key] = row.id;
+      return row.id;
+    }
     const res = await tx.run(
       'INSERT INTO units (name, region, directorship, branch) VALUES (?, ?, ?, ?)',
-      [name.trim(), regional ?? null, directorship ?? 'DIRETORIA INDUSTRIAL', filial ?? null]
+      [name.trim(), regional ?? null, directorship ?? null, filial ?? null]
     );
     const newId = res.lastInsertRowid;
     unitCache[key] = newId;
@@ -146,25 +175,40 @@ export async function POST(req: NextRequest) {
   await db.transaction(async (tx) => {
     for (let i = headerIdx + 1; i < raw.length; i++) {
       const row = raw[i] as unknown[];
-      const name = String(row[iName] ?? '').trim();
+      const name = cleanStr(row[iName]);
       if (!name) { skipped++; continue; }
 
-      if (filterIndustrial && iDir >= 0) {
-        const dir = String(row[iDir] ?? '').toUpperCase();
-        if (!dir.includes('INDUSTRIAL')) { skipped++; continue; }
+      // Filter: somente ativos (SITUAÇÃO = 'A')
+      if (filterAtivos && iSituacao >= 0) {
+        const sit = cleanStr(row[iSituacao]).toUpperCase();
+        if (sit !== 'A' && sit !== 'ATIVO') { skipped++; continue; }
       }
 
-      const reg    = iReg    >= 0 ? String(row[iReg]    ?? '').trim() : '';
-      const unitNm = iUnit   >= 0 ? String(row[iUnit]   ?? '').trim() : '';
-      const pos    = iPos    >= 0 ? String(row[iPos]    ?? '').trim() : '';
-      const sec    = iSec    >= 0 ? String(row[iSec]    ?? '').trim() : '';
-      const func   = iFunc   >= 0 ? String(row[iFunc]   ?? '').trim() : '';
+      // Filter: somente Fábrica
+      if (filterFabrica) {
+        if (iTipoNeg >= 0) {
+          // HC Oficial format: use TIPO DE NEGOCIO = FABRICA
+          const tNeg = cleanStr(row[iTipoNeg]).toUpperCase();
+          if (tNeg !== 'FABRICA') { skipped++; continue; }
+        } else if (iDir >= 0) {
+          // Legacy format: DIRETORIA contains INDUSTRIAL
+          const dir = cleanStr(row[iDir]).toUpperCase();
+          if (!dir.includes('INDUSTRIAL')) { skipped++; continue; }
+        }
+      }
+
+      const reg    = iReg    >= 0 ? cleanStr(row[iReg])    : '';
+      const unitNm = iUnit   >= 0 ? cleanStr(row[iUnit])   : '';
+      const pos    = iPos    >= 0 ? cleanStr(row[iPos])    : '';
+      const sec    = iSec    >= 0 ? cleanStr(row[iSec])    : '';
+      const func   = iFunc   >= 0 ? cleanStr(row[iFunc])   : '';
       const adm    = iAdm    >= 0 ? normalizeDate(row[iAdm]) : null;
-      const type   = iType   >= 0 ? String(row[iType]   ?? '').trim() : '';
-      const dir    = iDir    >= 0 ? String(row[iDir]    ?? '').trim() : '';
-      const reg2   = iReg2   >= 0 ? String(row[iReg2]   ?? '').trim() : '';
-      const filial = iFilial >= 0 ? String(row[iFilial] ?? '').trim() : '';
-      const unitId = await getOrCreateUnit(tx, unitNm, reg2, dir || undefined, filial || undefined);
+      const type   = iType   >= 0 ? cleanStr(row[iType])   : '';
+      const dir    = iDir    >= 0 ? cleanStr(row[iDir])    : '';
+      const reg2   = iReg2   >= 0 ? cleanStr(row[iReg2])   : '';
+      const filial = iFilial >= 0 ? cleanStr(row[iFilial]) : '';
+
+      const unitId = await getOrCreateUnit(tx, unitNm, reg2 || undefined, dir || undefined, filial || undefined);
 
       try {
         let existingId: number | null = null;
@@ -182,8 +226,8 @@ export async function POST(req: NextRequest) {
 
         if (existingId) {
           await tx.run(
-            `UPDATE employees SET name=?, unit_id=?, position=?, section=?, function_code=?, admission_date=?, employment_type=? WHERE id=?`,
-            [name, unitId, pos || null, sec || null, func || null, adm, type || null, existingId]
+            `UPDATE employees SET name=?, registration=?, unit_id=?, position=?, section=?, function_code=?, admission_date=?, employment_type=? WHERE id=?`,
+            [name, reg || null, unitId, pos || null, sec || null, func || null, adm, type || null, existingId]
           );
           updated++;
         } else {
@@ -212,14 +256,16 @@ export async function POST(req: NextRequest) {
     errors,
     totalInDb: total?.c ?? 0,
     detectedColumns: {
-      name:         iName    >= 0 ? headers[iName]    : null,
-      registration: iReg     >= 0 ? headers[iReg]     : null,
-      unit:         iUnit    >= 0 ? headers[iUnit]    : null,
-      position:     iPos     >= 0 ? headers[iPos]     : null,
-      section:      iSec     >= 0 ? headers[iSec]     : null,
-      funcCode:     iFunc    >= 0 ? headers[iFunc]    : null,
-      admDate:      iAdm     >= 0 ? headers[iAdm]     : null,
-      empType:      iType    >= 0 ? headers[iType]    : null,
+      name:         iName     >= 0 ? headers[iName]     : null,
+      registration: iReg      >= 0 ? headers[iReg]      : null,
+      unit:         iUnit     >= 0 ? headers[iUnit]      : null,
+      position:     iPos      >= 0 ? headers[iPos]       : null,
+      section:      iSec      >= 0 ? headers[iSec]       : null,
+      funcCode:     iFunc     >= 0 ? headers[iFunc]      : null,
+      admDate:      iAdm      >= 0 ? headers[iAdm]       : null,
+      empType:      iType     >= 0 ? headers[iType]      : null,
+      tipoNegocio:  iTipoNeg  >= 0 ? headers[iTipoNeg]   : null,
+      situacao:     iSituacao >= 0 ? headers[iSituacao]  : null,
     },
   });
 }
