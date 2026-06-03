@@ -211,9 +211,6 @@ export default function DashboardPage() {
           <table className="w-full text-xs border-collapse min-w-[600px]">
             <thead>
               <tr>
-                <th rowSpan={2} className="border border-red-100 bg-brand-800 text-white px-4 py-2 text-center font-bold text-[11px] uppercase tracking-wide w-32 align-middle">
-                  Procedimento<br />Padrão
-                </th>
                 <th rowSpan={2} className="border border-red-100 bg-brand-700 text-white px-3 py-2 text-center font-semibold text-[11px] align-middle w-20">
                   Nº de<br />Questões
                 </th>
@@ -247,16 +244,22 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {RANGE_TABLE.map((row, idx) => (
-                <tr key={row.q} className={idx % 2 === 0 ? 'bg-white' : 'bg-brand-50/30'}>
-                  <td className="border border-red-100 px-3 py-2 text-center font-bold text-brand-800">{row.q}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-red-700">0%</td>
-                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">0 acertos</td>
-                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-yellow-700">{row.dep}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.depAc}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-green-700">{row.ind}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.indAc}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-blue-700">{row.int}</td>
-                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.intAc}</td>
+                <tr key={row.q}>
+                  {idx === 0 && (
+                    <td rowSpan={RANGE_TABLE.length} className="border border-red-100 bg-brand-800 text-white text-center font-bold text-[11px] uppercase tracking-wide px-2 align-middle"
+                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.1em', width: '2rem' }}>
+                      Procedimento Padrão
+                    </td>
+                  )}
+                  <td className="border border-red-100 px-3 py-2.5 text-center font-bold text-brand-800">{row.q}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center font-semibold text-red-700 bg-red-50/40">0%</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center text-red-400 text-[11px] bg-red-50/40">0 acertos</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center font-semibold text-yellow-700 bg-yellow-50/40">{row.dep}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center text-yellow-500 text-[11px] bg-yellow-50/40">{row.depAc}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center font-semibold text-green-700 bg-green-50/40">{row.ind}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center text-green-500 text-[11px] bg-green-50/40">{row.indAc}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center font-semibold text-blue-700 bg-blue-50/40">{row.int}</td>
+                  <td className="border border-red-100 px-2 py-2.5 text-center text-blue-500 text-[11px] bg-blue-50/40">{row.intAc}</td>
                 </tr>
               ))}
             </tbody>
