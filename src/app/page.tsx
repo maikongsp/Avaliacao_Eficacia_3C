@@ -203,42 +203,30 @@ export default function DashboardPage() {
 
       {/* Range Table */}
       <div className="bg-white rounded-2xl border border-red-100 shadow-card overflow-hidden">
-        <div className="px-5 pt-5 pb-3">
-          <h3 className="font-display text-sm font-bold text-brand-800">Ranges de Acerto por Nível — Procedimento Padrão</h3>
-          <p className="text-[11px] text-brand-muted mt-0.5">Percentual e quantidade de acertos necessários para cada nível, conforme o número de questões</p>
-        </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse min-w-[600px]">
+          <table className="w-full text-[11px] border-collapse min-w-[720px]">
             <thead>
               <tr>
-                <th rowSpan={2} className="border border-red-100 bg-brand-700 text-white px-3 py-2 text-center font-semibold text-[11px] align-middle w-20">
-                  Nº de<br />Questões
+                <th rowSpan={2} className="border border-gray-400 px-3 py-2 align-middle" style={{ background: '#1b4332', width: '9rem' }} />
+                <th rowSpan={2} className="border border-gray-400 px-2 py-2 text-center font-bold text-[10px] uppercase text-white align-middle" style={{ background: '#427730', width: '5.5rem' }}>
+                  QNT. DE<br />PERGUNTAS
                 </th>
-                <th colSpan={2} className="border border-gray-300 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide text-white" style={{ background: '#AA272F' }}>
-                  🔴 Reativo
-                </th>
-                <th colSpan={2} className="border border-gray-300 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide text-gray-900" style={{ background: '#FDC82F' }}>
-                  🟡 Dependente
-                </th>
-                <th colSpan={2} className="border border-gray-300 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide text-white" style={{ background: '#427730' }}>
-                  🟢 Independente
-                </th>
-                <th colSpan={2} className="border border-gray-300 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide text-white bg-blue-800">
-                  🔵 Interdependente
+                <th colSpan={8} className="border border-gray-400 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-widest text-white" style={{ background: '#427730' }}>
+                  RANGES
                 </th>
               </tr>
               <tr>
                 {[
-                  { label: '%',       bg: '#AA272F', fg: 'white' },
-                  { label: 'Acertos', bg: '#AA272F', fg: 'white' },
-                  { label: '%',       bg: '#FDC82F', fg: '#78350f' },
-                  { label: 'Acertos', bg: '#FDC82F', fg: '#78350f' },
-                  { label: '%',       bg: '#427730', fg: 'white' },
-                  { label: 'Acertos', bg: '#427730', fg: 'white' },
-                  { label: '%',       bg: '#1e40af', fg: 'white' },
-                  { label: 'Acertos', bg: '#1e40af', fg: 'white' },
+                  { label: 'REATIVO',         bg: '#AA272F', fg: 'white'   },
+                  { label: 'ACERTOS',         bg: '#AA272F', fg: 'white'   },
+                  { label: 'DEPENDENTE',      bg: '#FDC82F', fg: '#78350f' },
+                  { label: 'ACERTOS',         bg: '#FDC82F', fg: '#78350f' },
+                  { label: 'INDEPENDENTE',    bg: '#427730', fg: 'white'   },
+                  { label: 'ACERTOS',         bg: '#427730', fg: 'white'   },
+                  { label: 'INTERDEPENDENTE', bg: '#1e40af', fg: 'white'   },
+                  { label: 'ACERTOS',         bg: '#1e40af', fg: 'white'   },
                 ].map((h, i) => (
-                  <th key={i} className="border border-gray-300 px-2 py-1.5 text-center font-semibold"
+                  <th key={i} className="border border-gray-400 px-2 py-2 text-center font-bold text-[10px] uppercase"
                     style={{ background: h.bg, color: h.fg }}>{h.label}</th>
                 ))}
               </tr>
@@ -247,20 +235,21 @@ export default function DashboardPage() {
               {RANGE_TABLE.map((row, idx) => (
                 <tr key={row.q}>
                   {idx === 0 && (
-                    <td rowSpan={RANGE_TABLE.length} className="border border-red-100 bg-brand-800 text-white text-center font-bold text-[11px] uppercase tracking-wide px-2 align-middle"
-                      style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.1em', width: '2rem' }}>
-                      Procedimento Padrão
+                    <td rowSpan={RANGE_TABLE.length}
+                      className="border border-gray-400 text-white text-center font-bold text-xs uppercase tracking-wide align-middle px-3 py-2"
+                      style={{ background: '#1b4332' }}>
+                      PROCEDIMENTO<br />PADRÃO
                     </td>
                   )}
-                  <td className="border border-gray-200 px-3 py-2.5 text-center font-bold text-brand-800">{row.q}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center font-semibold" style={{ background: '#fef2f2', color: '#AA272F' }}>0%</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center text-[11px]" style={{ background: '#fef2f2', color: '#b91c1c' }}>0 acertos</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center font-semibold" style={{ background: '#fefce8', color: '#854d0e' }}>{row.dep}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center text-[11px]" style={{ background: '#fefce8', color: '#92400e' }}>{row.depAc}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center font-semibold" style={{ background: '#f0fdf4', color: '#15803d' }}>{row.ind}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center text-[11px]" style={{ background: '#f0fdf4', color: '#166534' }}>{row.indAc}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center font-semibold" style={{ background: '#eff6ff', color: '#1d4ed8' }}>{row.int}</td>
-                  <td className="border border-gray-200 px-2 py-2.5 text-center text-[11px]" style={{ background: '#eff6ff', color: '#1e40af' }}>{row.intAc}</td>
+                  <td className="border border-gray-300 px-3 py-2.5 text-center font-bold text-brand-800">{row.q}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center font-semibold" style={{ background: '#fef2f2', color: '#AA272F' }}>0%</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center" style={{ background: '#fef2f2', color: '#b91c1c' }}>0 acertos</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center font-semibold" style={{ background: '#fefce8', color: '#854d0e' }}>{row.dep}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center" style={{ background: '#fefce8', color: '#92400e' }}>{row.depAc}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center font-semibold" style={{ background: '#f0fdf4', color: '#15803d' }}>{row.ind}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center" style={{ background: '#f0fdf4', color: '#166534' }}>{row.indAc}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center font-semibold" style={{ background: '#eff6ff', color: '#1d4ed8' }}>{row.int}</td>
+                  <td className="border border-gray-300 px-2 py-2.5 text-center" style={{ background: '#eff6ff', color: '#1e40af' }}>{row.intAc}</td>
                 </tr>
               ))}
             </tbody>
