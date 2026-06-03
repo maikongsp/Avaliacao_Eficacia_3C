@@ -622,29 +622,6 @@ function NovaAvaliacaoPageContent() {
                       );
                     })()}
 
-                    {/* Effectiveness */}
-                    <div className="border border-gray-100 rounded-lg p-3">
-                      <p className="text-xs font-medium text-gray-600 mb-2">O treinamento foi eficaz?</p>
-                      <div className="flex gap-3">
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={collab.is_effective} onChange={() => updateCollab(ci, { is_effective: true })} />
-                          Sim
-                        </label>
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={!collab.is_effective} onChange={() => updateCollab(ci, { is_effective: false })} />
-                          Não
-                        </label>
-                      </div>
-                      {!collab.is_effective && (
-                        <textarea
-                          value={collab.ineffective_reason}
-                          onChange={e => updateCollab(ci, { ineffective_reason: e.target.value })}
-                          placeholder="Justifique a não eficácia..."
-                          rows={2}
-                          className="mt-2 w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
-                        />
-                      )}
-                    </div>
                   </div>
                 )}
               </div>

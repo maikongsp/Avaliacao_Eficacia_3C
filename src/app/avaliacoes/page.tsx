@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Download, RefreshCw } from 'lucide-react';
 import { formatDate, formatPct } from '@/lib/utils';
 import { levelLabel, type SkillLevel } from '@/lib/ranges';
 
@@ -28,6 +28,24 @@ export default function AvaliacoesPage() {
   const [rows, setRows] = useState<Evaluation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  async function exportXlsx() {
+    setExporting(true);
+    try {
+      const res = await fetch('/api/avaliacoes/export');
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') ?? '';
+      const match = cd.match(/filename="([^"]+)"/);
+      const filename = match?.[1] ?? 'Avaliacoes.xlsx';
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   useEffect(() => {
     fetch('/api/avaliacoes')
@@ -48,12 +66,22 @@ export default function AvaliacoesPage() {
           <h2 className="font-display text-2xl font-bold text-brand-800">Avaliações</h2>
           <p className="text-sm text-brand-muted mt-0.5">{rows.length} avaliação(ões) registrada(s)</p>
         </div>
-        <Link
-          href="/avaliacoes/nova"
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm"
-        >
-          <Plus size={16} /> Nova Avaliação
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportXlsx}
+            disabled={exporting || rows.length === 0}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {exporting ? <RefreshCw size={15} className="animate-spin" /> : <Download size={15} />}
+            Exportar Excel
+          </button>
+          <Link
+            href="/avaliacoes/nova"
+            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors shadow-sm"
+          >
+            <Plus size={16} /> Nova Avaliação
+          </Link>
+        </div>
       </div>
 
       <div className="relative">

@@ -19,7 +19,7 @@ type NavItem = {
 };
 
 const nav: NavItem[] = [
-  { href: '/',                label: 'Dashboard',      icon: LayoutDashboard },
+  { href: '/',                label: 'Matriz de Habilidades', icon: LayoutDashboard },
   { href: '/avaliacoes',      label: 'Avaliações',     icon: ClipboardList   },
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
   { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus,            role: 'gestor' },
