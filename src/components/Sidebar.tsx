@@ -19,7 +19,7 @@ type NavItem = {
 };
 
 const nav: NavItem[] = [
-  { href: '/',                label: 'Dashboard',      icon: LayoutDashboard },
+  { href: '/',                label: 'Matriz de Habilidades', icon: LayoutDashboard },
   { href: '/avaliacoes',      label: 'Avaliações',     icon: ClipboardList   },
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
   { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus,            role: 'gestor' },
@@ -39,7 +39,6 @@ export function Sidebar({ onClose }: SidebarProps) {
 
   useEffect(() => {
     setRole(getStoredRole());
-    // Re-check when storage changes (e.g. another tab logs in)
     const handler = () => setRole(getStoredRole());
     window.addEventListener('storage', handler);
     return () => window.removeEventListener('storage', handler);
@@ -97,7 +96,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       <nav className="flex-1 px-3 py-2 relative space-y-0.5 overflow-y-auto">
         {nav.map(({ href, label, icon: Icon, role: required }) => {
           const active = path === href || (href !== '/' && path.startsWith(href));
-          const locked = !!required; // show lock icon if route has a role
+          const locked = !!required;
           return (
             <Link
               key={href}
@@ -149,7 +148,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       {/* Slogan */}
       <div className="relative px-6 pt-3 pb-3 border-t border-white/10">
         <p className="text-brand-yellow/90 text-[10px] italic font-display leading-snug">
-          "O prazer está nas coisas simples!"
+          &quot;O prazer está nas coisas simples!&quot;
         </p>
       </div>
 

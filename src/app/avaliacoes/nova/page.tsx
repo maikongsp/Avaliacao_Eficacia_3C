@@ -82,7 +82,6 @@ function NovaAvaliacaoPageContent() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 data
   const [evaluatorEmail, setEvaluatorEmail] = useState('');
   const [evaluatorName, setEvaluatorName] = useState('');
   const [evaluationDate, setEvaluationDate] = useState(new Date().toISOString().slice(0, 10));
@@ -95,7 +94,6 @@ function NovaAvaliacaoPageContent() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [collaborators, setCollaborators] = useState<CollaboratorEntry[]>([]);
 
-  // Employee search
   const [empSearch, setEmpSearch] = useState('');
   const [empResults, setEmpResults] = useState<Employee[]>([]);
   const [showEmpSearch, setShowEmpSearch] = useState(false);
@@ -108,7 +106,6 @@ function NovaAvaliacaoPageContent() {
         .map((name, i) => ({ id: i + 1, name }));
       setUnits(uniqueUnits);
     });
-    // Actually fetch units from employees API
     fetch('/api/colaboradores?q=').then(r => r.json()).then((emps: Employee[]) => {
       const seen = new Map<string, Unit>();
       emps.forEach(e => {
@@ -135,7 +132,6 @@ function NovaAvaliacaoPageContent() {
     const res = await fetch(`/api/perguntas?training_id=${tid}`);
     const qs: Question[] = await res.json();
     setQuestions(qs);
-    // Reset collaborator answers
     setCollaborators(prev => prev.map(c => ({ ...c, answers: {} })));
   };
 
@@ -192,7 +188,6 @@ function NovaAvaliacaoPageContent() {
   function collabAnswersValid(c: CollaboratorEntry): boolean {
     const qs = visibleQuestions(c).filter(q => q.type !== 'height_confined_check');
     if (!qs.every(q => c.answers[q.id])) return false;
-    // safety_general and tecnica must be CONFORME or NAO_CONFORME
     const mandatory = qs.filter(q => q.type === 'safety_general' || q.type === 'tecnica');
     return mandatory.every(q => c.answers[q.id] !== 'NA');
   }
@@ -204,23 +199,13 @@ function NovaAvaliacaoPageContent() {
   const submit = async () => {
     setSaving(true);
     try {
-      // Find real unit id from the list
-      const unitIdFromApi = await fetch('/api/colaboradores?q=')
-        .then(r => r.json())
-        .then((emps: Employee[]) => {
-          const match = emps.find(e => e.unit_name === selectedUnit?.name);
-          return match?.id ?? null;
-        });
-
-      // Build payload — we need unit_id from the db
-      // Since units API isn't separate, use training_id from training, and unit from evaluations
       const payload = {
         evaluator_email: evaluatorEmail,
         evaluator_name: evaluatorName,
         evaluation_date: evaluationDate,
         training_date: trainingDate,
         training_id: selectedTraining!.id,
-        unit_id: 1, // Will be resolved server-side if needed; we pass unit name
+        unit_id: 1,
         unit_name: selectedUnit?.name,
         collaborators: collaborators.map(c => ({
           employee_id: c.employee?.id,
@@ -622,29 +607,6 @@ function NovaAvaliacaoPageContent() {
                       );
                     })()}
 
-                    {/* Effectiveness */}
-                    <div className="border border-gray-100 rounded-lg p-3">
-                      <p className="text-xs font-medium text-gray-600 mb-2">O treinamento foi eficaz?</p>
-                      <div className="flex gap-3">
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={collab.is_effective} onChange={() => updateCollab(ci, { is_effective: true })} />
-                          Sim
-                        </label>
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={!collab.is_effective} onChange={() => updateCollab(ci, { is_effective: false })} />
-                          Não
-                        </label>
-                      </div>
-                      {!collab.is_effective && (
-                        <textarea
-                          value={collab.ineffective_reason}
-                          onChange={e => updateCollab(ci, { ineffective_reason: e.target.value })}
-                          placeholder="Justifique a não eficácia..."
-                          rows={2}
-                          className="mt-2 w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
-                        />
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
