@@ -17,6 +17,14 @@ const LEVEL_COLORS: Record<string, string> = {
   INTERDEPENDENTE: '#2D5E1E',
 };
 
+const RANGE_TABLE = [
+  { q: 2, dep: '–',          depAc: '–',             ind: '50%',        indAc: '1 acerto',    int: '100%', intAc: '2 acertos' },
+  { q: 3, dep: '33%',        depAc: '1 acerto',       ind: '67%',        indAc: '2 acertos',   int: '100%', intAc: '3 acertos' },
+  { q: 4, dep: '25%',        depAc: '1 acerto',       ind: '50% – 75%',  indAc: '2 a 3 acertos', int: '100%', intAc: '4 acertos' },
+  { q: 5, dep: '20% – 40%',  depAc: '1 a 2 acertos',  ind: '60% – 80%',  indAc: '3 a 4 acertos', int: '100%', intAc: '5 acertos' },
+  { q: 6, dep: '17% – 33%',  depAc: '1 a 2 acertos',  ind: '50% – 83%',  indAc: '3 a 5 acertos', int: '100%', intAc: '6 acertos' },
+];
+
 const LEVEL_LEGEND = [
   { emoji: '🔴', key: 'REATIVO',         label: 'Nível 1 — Reativo',         range: '0% de acertos',          color: 'border-red-200 bg-red-50',    text: 'text-red-800',    desc: 'O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.' },
   { emoji: '🟡', key: 'DEPENDENTE',      label: 'Nível 2 — Dependente',      range: 'Entre 17 e 40% de acerto', color: 'border-yellow-200 bg-yellow-50', text: 'text-yellow-800', desc: 'O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.' },
@@ -155,7 +163,6 @@ export default function DashboardPage() {
           )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Unidade */}
           <div className="relative">
             <select value={unitId} onChange={e => setUnitId(e.target.value)} className={sel}>
               <option value="">Todas as unidades</option>
@@ -163,7 +170,6 @@ export default function DashboardPage() {
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          {/* Categoria */}
           <div className="relative">
             <select value={catFilter} onChange={e => handleCatChange(e.target.value)} className={sel}>
               <option value="">Todas as categorias</option>
@@ -171,7 +177,6 @@ export default function DashboardPage() {
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          {/* Treinamento */}
           <div className="relative">
             <select value={trainingId} onChange={e => setTrainingId(e.target.value)} className={sel}>
               <option value="">Todos os treinamentos</option>
@@ -193,6 +198,69 @@ export default function DashboardPage() {
               <p className="text-[11px] text-gray-600 leading-relaxed">{l.desc}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Range Table */}
+      <div className="bg-white rounded-2xl border border-red-100 shadow-card overflow-hidden">
+        <div className="px-5 pt-5 pb-3">
+          <h3 className="font-display text-sm font-bold text-brand-800">Ranges de Acerto por Nível — Procedimento Padrão</h3>
+          <p className="text-[11px] text-brand-muted mt-0.5">Percentual e quantidade de acertos necessários para cada nível, conforme o número de questões</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs border-collapse min-w-[600px]">
+            <thead>
+              <tr>
+                <th rowSpan={2} className="border border-red-100 bg-brand-800 text-white px-4 py-2 text-center font-bold text-[11px] uppercase tracking-wide w-32 align-middle">
+                  Procedimento<br />Padrão
+                </th>
+                <th rowSpan={2} className="border border-red-100 bg-brand-700 text-white px-3 py-2 text-center font-semibold text-[11px] align-middle w-20">
+                  Nº de<br />Questões
+                </th>
+                <th colSpan={2} className="border border-red-100 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide bg-red-100 text-red-800">
+                  🔴 Reativo
+                </th>
+                <th colSpan={2} className="border border-red-100 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide bg-yellow-50 text-yellow-800">
+                  🟡 Dependente
+                </th>
+                <th colSpan={2} className="border border-red-100 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide bg-green-50 text-green-800">
+                  🟢 Independente
+                </th>
+                <th colSpan={2} className="border border-red-100 px-3 py-2 text-center font-bold text-[11px] uppercase tracking-wide bg-blue-50 text-blue-800">
+                  🔵 Interdependente
+                </th>
+              </tr>
+              <tr>
+                {[
+                  { label: '%',       cls: 'bg-red-50 text-red-700' },
+                  { label: 'Acertos', cls: 'bg-red-50 text-red-500' },
+                  { label: '%',       cls: 'bg-yellow-50 text-yellow-700' },
+                  { label: 'Acertos', cls: 'bg-yellow-50 text-yellow-600' },
+                  { label: '%',       cls: 'bg-green-50 text-green-700' },
+                  { label: 'Acertos', cls: 'bg-green-50 text-green-600' },
+                  { label: '%',       cls: 'bg-blue-50 text-blue-700' },
+                  { label: 'Acertos', cls: 'bg-blue-50 text-blue-600' },
+                ].map((h, i) => (
+                  <th key={i} className={`border border-red-100 px-2 py-1.5 text-center font-semibold ${h.cls}`}>{h.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {RANGE_TABLE.map((row, idx) => (
+                <tr key={row.q} className={idx % 2 === 0 ? 'bg-white' : 'bg-brand-50/30'}>
+                  <td className="border border-red-100 px-3 py-2 text-center font-bold text-brand-800">{row.q}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-red-700">0%</td>
+                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">0 acertos</td>
+                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-yellow-700">{row.dep}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.depAc}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-green-700">{row.ind}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.indAc}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center font-semibold text-blue-700">{row.int}</td>
+                  <td className="border border-red-100 px-2 py-2 text-center text-gray-400 text-[11px]">{row.intAc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
