@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, ChevronDown, AlertCircle, Clock, CheckCircle2, XCircle, Filter, User, Lock } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { AuthGuard } from '@/components/AuthGuard';
 
 interface Plan {
   id: number;
@@ -384,12 +385,14 @@ function PlanosContent() {
 
 export default function PlanosPage() {
   return (
-    <Suspense fallback={
-      <div className="flex justify-center py-16">
-        <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
-      </div>
-    }>
-      <PlanosContent />
-    </Suspense>
+    <AuthGuard required="gestor">
+      <Suspense fallback={
+        <div className="flex justify-center py-16">
+          <div className="animate-spin h-8 w-8 border-4 border-brand-500 border-t-transparent rounded-full" />
+        </div>
+      }>
+        <PlanosContent />
+      </Suspense>
+    </AuthGuard>
   );
 }

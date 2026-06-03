@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { AuthGuard } from '@/components/AuthGuard';
 import { Plus, Trash2, Search, ChevronDown, ChevronUp, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type SkillLevel } from '@/lib/ranges';
@@ -76,7 +77,7 @@ function AnswerBtn({ value, current, onChange, label, icon: Icon, color }: {
   );
 }
 
-export default function NovaAvaliacaoPage() {
+function NovaAvaliacaoPageContent() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -187,11 +188,18 @@ export default function NovaAvaliacaoPage() {
   };
 
   const step1Valid = evaluatorEmail && trainingDate && selectedTraining && selectedUnit;
-  const step2Valid = collaborators.length > 0 && collaborators.every(c => {
-    if (!c.employee_name) return false;
+
+  function collabAnswersValid(c: CollaboratorEntry): boolean {
     const qs = visibleQuestions(c).filter(q => q.type !== 'height_confined_check');
-    return qs.every(q => c.answers[q.id]);
-  });
+    if (!qs.every(q => c.answers[q.id])) return false;
+    // safety_general and tecnica must be CONFORME or NAO_CONFORME
+    const mandatory = qs.filter(q => q.type === 'safety_general' || q.type === 'tecnica');
+    return mandatory.every(q => c.answers[q.id] !== 'NA');
+  }
+
+  const step2Valid = collaborators.length > 0 && collaborators.every(c =>
+    c.employee_name ? collabAnswersValid(c) : false
+  );
 
   const submit = async () => {
     setSaving(true);
@@ -507,6 +515,26 @@ export default function NovaAvaliacaoPage() {
                           </button>
                         ))}
                       </div>
+
+                      {/* Level legend */}
+                      <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 divide-y divide-gray-100 text-[11px] leading-relaxed">
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🔴</span>
+                          <span><strong>Nível 1 (Reativo) — 0% de acertos:</strong> O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🟡</span>
+                          <span><strong>Nível 2 (Dependente) — Entre 17 e 40% de acerto:</strong> O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🟢</span>
+                          <span><strong>Nível 3 (Independente) — Entre 53 e 80% de acerto:</strong> O colaborador possui autonomia operacional, sendo capaz de executar o procedimento nos padrões de qualidade e tempo esperados.</span>
+                        </div>
+                        <div className="flex gap-2 px-3 py-2">
+                          <span className="shrink-0">🔵</span>
+                          <span><strong>Nível 4 (Interdependente) — 100% de acertos:</strong> O colaborador demonstra excelência técnica e domínio perfeito do padrão, além de uma visão sistêmica do impacto do seu trabalho no processo. Deve ser avaliado como um possível multiplicador para orientar a equipe.</span>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Height/Confined check */}
@@ -541,43 +569,59 @@ export default function NovaAvaliacaoPage() {
                     )}
 
                     {/* Questions */}
-                    <div className="space-y-3">
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Questões de Avaliação</p>
-                      {qs.filter(q => q.type !== 'height_confined_check').map(q => (
-                        <div key={q.id} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
-                          <p className="text-xs text-gray-700 mb-2 leading-relaxed">{q.text}</p>
-                          <div className="flex gap-2 flex-wrap">
-                            <AnswerBtn value="CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Conforme" icon={CheckCircle} color="green" />
-                            <AnswerBtn value="NAO_CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Não Conforme" icon={XCircle} color="red" />
-                            <AnswerBtn value="NA" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="N/A" icon={MinusCircle} color="gray" />
+                    {(() => {
+                      const scoredQs = qs.filter(q => q.type !== 'height_confined_check');
+                      const mandatoryQs = scoredQs.filter(q => q.type === 'safety_general' || q.type === 'tecnica');
+                      const mandatoryAnswered = mandatoryQs.filter(q =>
+                        collab.answers[q.id] === 'CONFORME' || collab.answers[q.id] === 'NAO_CONFORME'
+                      ).length;
+                      const required = mandatoryQs.length;
+                      const needsMore = mandatoryAnswered < required;
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Questões de Avaliação</p>
+                            <span className={cn(
+                              'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                              needsMore ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                            )}>
+                              {mandatoryAnswered}/{required} obrigatórias respondidas
+                            </span>
                           </div>
+                          {scoredQs.map(q => {
+                            const isMandatory = q.type === 'safety_general' || q.type === 'tecnica';
+                            return (
+                              <div key={q.id} className={cn(
+                                'border rounded-lg p-3',
+                                isMandatory ? 'border-brand-200 bg-brand-50' : 'border-gray-100 bg-gray-50'
+                              )}>
+                                <div className="flex items-start gap-2 mb-2">
+                                  {isMandatory && (
+                                    <span className="shrink-0 text-[10px] font-bold text-brand-700 bg-brand-100 border border-brand-200 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                      Obrigatória
+                                    </span>
+                                  )}
+                                  <p className="text-xs text-gray-700 leading-relaxed">{q.text}</p>
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                  <AnswerBtn value="CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Conforme" icon={CheckCircle} color="green" />
+                                  <AnswerBtn value="NAO_CONFORME" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="Não Conforme" icon={XCircle} color="red" />
+                                  {!isMandatory && (
+                                    <AnswerBtn value="NA" current={collab.answers[q.id] ?? 'NA'} onChange={a => setAnswer(ci, q.id, a)} label="N/A" icon={MinusCircle} color="gray" />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {needsMore && scoredQs.some(q => collab.answers[q.id]) && (
+                            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                              Responda as questões obrigatórias (Técnica e Segurança Geral) com Conforme ou Não Conforme.
+                            </p>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
 
-                    {/* Effectiveness */}
-                    <div className="border border-gray-100 rounded-lg p-3">
-                      <p className="text-xs font-medium text-gray-600 mb-2">O treinamento foi eficaz?</p>
-                      <div className="flex gap-3">
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={collab.is_effective} onChange={() => updateCollab(ci, { is_effective: true })} />
-                          Sim
-                        </label>
-                        <label className="flex items-center gap-2 text-xs">
-                          <input type="radio" checked={!collab.is_effective} onChange={() => updateCollab(ci, { is_effective: false })} />
-                          Não
-                        </label>
-                      </div>
-                      {!collab.is_effective && (
-                        <textarea
-                          value={collab.ineffective_reason}
-                          onChange={e => updateCollab(ci, { ineffective_reason: e.target.value })}
-                          placeholder="Justifique a não eficácia..."
-                          rows={2}
-                          className="mt-2 w-full border border-gray-200 rounded px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
-                        />
-                      )}
-                    </div>
                   </div>
                 )}
               </div>
@@ -663,5 +707,13 @@ export default function NovaAvaliacaoPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function NovaAvaliacaoPage() {
+  return (
+    <AuthGuard required="gestor">
+      <NovaAvaliacaoPageContent />
+    </AuthGuard>
   );
 }

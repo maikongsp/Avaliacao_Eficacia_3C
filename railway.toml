@@ -12,6 +12,10 @@ restartPolicyMaxRetries = 3
 [[services]]
 name = "web"
 
+[[services.volumes]]
+name = "sqlite-data"
+mountPath = "/data"
+
 [environments.production.variables]
 NODE_ENV = "production"
 DATA_DIR = "/data"

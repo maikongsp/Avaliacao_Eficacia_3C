@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { AuthGuard } from '@/components/AuthGuard';
 import {
   ArrowLeft, Lock, Upload, CheckCircle2, XCircle,
   AlertCircle, FileSpreadsheet, RefreshCw, ChevronDown, Download,
@@ -19,16 +20,17 @@ interface ImportResult {
   error?: string;
 }
 
-export default function AdminHCPage() {
-  const [password, setPassword]       = useState('');
-  const [file, setFile]               = useState<File | null>(null);
-  const [sheet, setSheet]             = useState('');
-  const [filterIndustrial, setFilterIndustrial] = useState(false);
-  const [dragging, setDragging]       = useState(false);
-  const [loading, setLoading]         = useState(false);
-  const [exporting, setExporting]     = useState(false);
-  const [result, setResult]           = useState<ImportResult | null>(null);
-  const [authError, setAuthError]     = useState('');
+function AdminHCPageContent() {
+  const [password, setPassword]             = useState('');
+  const [file, setFile]                     = useState<File | null>(null);
+  const [sheet, setSheet]                   = useState('');
+  const [filterIndustrial, setFilterIndustrial] = useState(true);
+  const [filterAtivos, setFilterAtivos]     = useState(true);
+  const [dragging, setDragging]             = useState(false);
+  const [loading, setLoading]               = useState(false);
+  const [exporting, setExporting]           = useState(false);
+  const [result, setResult]                 = useState<ImportResult | null>(null);
+  const [authError, setAuthError]           = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (f: File) => {
@@ -82,6 +84,7 @@ export default function AdminHCPage() {
     fd.append('file', file);
     if (sheet) fd.append('sheet', sheet);
     if (filterIndustrial) fd.append('filter_industrial', '1');
+    if (filterAtivos)     fd.append('filter_ativos',     '1');
 
     try {
       const res = await fetch('/api/admin/hc', { method: 'POST', body: fd });
@@ -104,7 +107,7 @@ export default function AdminHCPage() {
         <Link href="/" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={18} /></Link>
         <div>
           <h2 className="font-display text-xl font-bold text-brand-800">Atualizar Base de HC</h2>
-          <p className="text-sm text-brand-muted">Importação da planilha Detalhe15 — Diretoria Industrial</p>
+          <p className="text-sm text-brand-muted">Importação da planilha HC Oficial — Diretoria Industrial</p>
         </div>
       </div>
 
@@ -200,14 +203,40 @@ export default function AdminHCPage() {
               <div className="flex flex-col items-center gap-2 text-gray-400">
                 <Upload size={28} />
                 <p className="text-sm font-medium">Arraste o arquivo aqui ou clique para selecionar</p>
-                <p className="text-xs">Suporta .xlsx, .xls, .xlsm (Detalhe15-Diretoria Industrial)</p>
+                <p className="text-xs">Suporta .xlsx — planilha padrão: <strong>HC Oficial</strong></p>
               </div>
             )}
           </div>
 
-          {/* Sheet selector — always shown when sheets available */}
-          {result?.sheets && result.sheets.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Filters — always shown */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={filterIndustrial}
+                  onChange={e => setFilterIndustrial(e.target.checked)}
+                  className="w-4 h-4 rounded accent-brand-600"
+                />
+                <span className="text-xs text-gray-600 font-medium">
+                  Somente Fábrica <span className="text-gray-400">(TIPO DE NEGOCIO = FABRICA)</span>
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={filterAtivos}
+                  onChange={e => setFilterAtivos(e.target.checked)}
+                  className="w-4 h-4 rounded accent-brand-600"
+                />
+                <span className="text-xs text-gray-600 font-medium">
+                  Somente ativos <span className="text-gray-400">(SITUAÇÃO = A)</span>
+                </span>
+              </label>
+            </div>
+
+            {/* Sheet selector — shown when multiple sheets available */}
+            {result?.sheets && result.sheets.length > 1 && (
               <div className="relative">
                 <label className="block text-xs font-semibold text-brand-muted uppercase tracking-wide mb-1">
                   Aba da planilha
@@ -217,26 +246,15 @@ export default function AdminHCPage() {
                   onChange={e => setSheet(e.target.value)}
                   className={inp + ' appearance-none'}
                 >
-                  <option value="">Auto-detectar (Detalhe15 ou HC)</option>
+                  <option value="">Auto-detectar (HC Oficial)</option>
                   {result.sheets.map(s => (
                     <option key={s} value={s.trim()}>{s.trim()}</option>
                   ))}
                 </select>
                 <ChevronDown size={14} className="absolute right-3 bottom-3 text-gray-400 pointer-events-none" />
               </div>
-              <div className="flex items-end pb-2.5">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={filterIndustrial}
-                    onChange={e => setFilterIndustrial(e.target.checked)}
-                    className="w-4 h-4 rounded accent-brand-600"
-                  />
-                  <span className="text-xs text-gray-600 font-medium">Somente Diretoria Industrial</span>
-                </label>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Submit */}
@@ -318,5 +336,13 @@ export default function AdminHCPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminHCPage() {
+  return (
+    <AuthGuard required="admin">
+      <AdminHCPageContent />
+    </AuthGuard>
   );
 }

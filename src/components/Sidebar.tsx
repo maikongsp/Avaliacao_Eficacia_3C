@@ -1,31 +1,32 @@
 'use client';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ClipboardList, Users, BarChart2, Plus, X, Target } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import {
+  LayoutDashboard, ClipboardList, Users, BarChart2,
+  Plus, X, Target, DatabaseZap, HelpCircle, Lock,
+  LogOut, Shield, UserCircle2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AuthRole, getStoredRole, clearStoredRole, ROLE_LABELS } from '@/lib/auth';
 
-function ThreeHearts({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size * 3.2} height={size} viewBox="0 0 64 20" fill="none">
-      {[0, 22, 44].map((ox) => (
-        <path
-          key={ox}
-          d={`M${ox + 10} 18 C${ox + 10} 18 ${ox + 1} 12 ${ox + 1} 6.5 A4.5 4.5 0 0 1 ${ox + 10} 4.43 A4.5 4.5 0 0 1 ${ox + 19} 6.5 C${ox + 19} 12 ${ox + 10} 18 ${ox + 10} 18 Z`}
-          fill="white"
-          fillOpacity="0.92"
-        />
-      ))}
-    </svg>
-  );
-}
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  role?: AuthRole;
+};
 
-const nav = [
-  { href: '/',                label: 'Dashboard',      icon: LayoutDashboard },
+const nav: NavItem[] = [
+  { href: '/',                label: 'Matriz de Habilidades', icon: LayoutDashboard },
   { href: '/avaliacoes',      label: 'Avaliações',     icon: ClipboardList   },
-  { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus            },
-  { href: '/colaboradores',   label: 'Colaboradores',  icon: Users           },
   { href: '/relatorios',      label: 'Relatórios',     icon: BarChart2       },
-  { href: '/planos',          label: 'Planos de Ação', icon: Target          },
+  { href: '/avaliacoes/nova', label: 'Nova Avaliação', icon: Plus,            role: 'gestor' },
+  { href: '/colaboradores',   label: 'Colaboradores',  icon: Users,           role: 'gestor' },
+  { href: '/planos',          label: 'Planos de Ação', icon: Target,          role: 'gestor' },
+  { href: '/admin/perguntas', label: 'Questões',       icon: HelpCircle,      role: 'admin'  },
+  { href: '/admin/hc',        label: 'Atualizar HC',   icon: DatabaseZap,     role: 'admin'  },
 ];
 
 interface SidebarProps {
@@ -34,6 +35,24 @@ interface SidebarProps {
 
 export function Sidebar({ onClose }: SidebarProps) {
   const path = usePathname();
+  const [role, setRole] = useState<AuthRole | null>(null);
+
+  useEffect(() => {
+    setRole(getStoredRole());
+    // Re-check when storage changes (e.g. another tab logs in)
+    const handler = () => setRole(getStoredRole());
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
+  function logout() {
+    clearStoredRole();
+    setRole(null);
+  }
+
+  const roleLabel = role ? ROLE_LABELS[role] : 'Público';
+  const RoleIcon  = role === 'admin' ? Shield : role === 'gestor' ? UserCircle2 : null;
+
   return (
     <aside className="w-64 h-full flex flex-col shrink-0 brand-gradient shadow-sidebar relative overflow-hidden">
       {/* Decorative hearts pattern overlay */}
@@ -50,13 +69,19 @@ export function Sidebar({ onClose }: SidebarProps) {
           <X size={18} />
         </button>
 
-        <ThreeHearts size={18} />
+        {/* Logo oficial */}
+        <div className="inline-flex rounded-2xl bg-white p-2 shadow-lg">
+          <Image
+            src="/images/logo-grupo-transparent.png"
+            alt="Grupo 3Corações"
+            width={56}
+            height={56}
+            priority
+          />
+        </div>
 
         <div className="mt-3">
-          <p className="text-white font-display text-lg font-bold leading-none tracking-wide">
-            3Corações
-          </p>
-          <p className="text-red-200 text-[11px] mt-1 tracking-widest uppercase font-medium">
+          <p className="text-red-200 text-[11px] tracking-widest uppercase font-medium">
             Grupo Empresarial
           </p>
         </div>
@@ -64,14 +89,15 @@ export function Sidebar({ onClose }: SidebarProps) {
         <div className="mt-4 h-px bg-gradient-to-r from-brand-yellow via-brand-yellow/40 to-transparent" />
 
         <p className="mt-3 text-white/80 text-[11px] leading-snug font-medium">
-          Gestão de Avaliação de Treinamento
+          Gestão de Avaliação de Eficácia de Treinamentos
         </p>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 relative space-y-0.5 overflow-y-auto">
-        {nav.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon, role: required }) => {
           const active = path === href || (href !== '/' && path.startsWith(href));
+          const locked = !!required; // show lock icon if route has a role
           return (
             <Link
               key={href}
@@ -88,26 +114,48 @@ export function Sidebar({ onClose }: SidebarProps) {
                 strokeWidth={active ? 2.5 : 1.8}
                 className={active ? 'text-brand-600' : ''}
               />
-              {label}
+              <span className="flex-1">{label}</span>
+              {locked && !active && (
+                <Lock size={11} className="opacity-40 shrink-0" />
+              )}
               {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-yellow" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow shrink-0" />
               )}
             </Link>
           );
         })}
       </nav>
 
+      {/* Role indicator */}
+      <div className="relative px-4 py-3 border-t border-white/10 space-y-2">
+        <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+          {RoleIcon && <RoleIcon size={14} className="text-brand-yellow shrink-0" />}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] text-white/50 uppercase tracking-wide font-medium leading-none">Nível de acesso</p>
+            <p className="text-xs text-white font-semibold mt-0.5 truncate">{roleLabel}</p>
+          </div>
+          {role && (
+            <button
+              onClick={logout}
+              title="Sair do nível atual"
+              className="p-1 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors shrink-0"
+            >
+              <LogOut size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Slogan */}
-      <div className="relative px-6 pt-4 pb-3 border-t border-white/10">
+      <div className="relative px-6 pt-3 pb-3 border-t border-white/10">
         <p className="text-brand-yellow/90 text-[10px] italic font-display leading-snug">
           "O prazer está nas coisas simples!"
         </p>
       </div>
 
-      {/* Developer credit */}
+      {/* Footer label */}
       <div className="relative px-6 py-3 border-t border-white/10 bg-black/20">
-        <p className="text-white/40 text-[9.5px] leading-snug">Desenvolvido por</p>
-        <p className="text-white/70 text-[10px] font-semibold leading-snug">Ana Clara Costa Santos</p>
+        <p className="text-white/70 text-[10px] font-semibold leading-snug tracking-wide uppercase">Educação Corporativa</p>
       </div>
     </aside>
   );
