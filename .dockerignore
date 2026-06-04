@@ -1,0 +1,10 @@
+node_modules
+.next
+data
+backup
+.env*
+*.db
+*.tsbuildinfo
+.git
+.gitignore
+README.md
