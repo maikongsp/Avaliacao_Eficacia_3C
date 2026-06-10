@@ -6,13 +6,6 @@ import { Plus, Trash2, Search, ChevronDown, ChevronUp, CheckCircle, XCircle, Min
 import { cn } from '@/lib/utils';
 import { type SkillLevel } from '@/lib/ranges';
 
-const SKILL_LEVELS: SkillLevel[] = ['REATIVO', 'DEPENDENTE', 'INDEPENDENTE', 'INTERDEPENDENTE'];
-const LEVEL_LABELS: Record<SkillLevel, string> = {
-  REATIVO: 'Reativo',
-  DEPENDENTE: 'Dependente',
-  INDEPENDENTE: 'Independente',
-  INTERDEPENDENTE: 'Interdependente',
-};
 
 type Answer = 'CONFORME' | 'NAO_CONFORME' | 'NA';
 
@@ -494,45 +487,18 @@ function NovaAvaliacaoPageContent() {
                     )}
 
                     <div className="pt-3">
-                      <label className="block text-xs font-medium text-gray-600 mb-2">Nível de Habilidade Desejado *</label>
-                      <div className="flex gap-2 flex-wrap">
-                        {SKILL_LEVELS.map(l => (
-                          <button
-                            key={l}
-                            type="button"
-                            onClick={() => updateCollab(ci, { desired_level: l })}
-                            className={cn(
-                              'px-3 py-1.5 text-xs rounded-lg font-medium border transition-all',
-                              collab.desired_level === l
-                                ? l === 'REATIVO' ? 'bg-red-600 text-white border-red-600'
-                                  : l === 'DEPENDENTE' ? 'bg-brand-600 text-white border-brand-600'
-                                    : l === 'INDEPENDENTE' ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-green-600 text-white border-green-600'
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            )}
-                          >
-                            {LEVEL_LABELS[l]}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Level legend */}
-                      <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 divide-y divide-gray-100 text-[11px] leading-relaxed">
+                      <div className="rounded-lg border border-gray-100 bg-gray-50 divide-y divide-gray-100 text-[11px] leading-relaxed">
                         <div className="flex gap-2 px-3 py-2">
                           <span className="shrink-0">🔴</span>
-                          <span><strong>Nível 1 (Reativo) — 0% de acertos:</strong> O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.</span>
+                          <span><strong>Nível 1 (Reativo) — 0 acertos:</strong> O colaborador não demonstra a execução segura das etapas do procedimento padrão. Necessita de supervisão constante e instruções detalhadas para qualquer execução.</span>
                         </div>
                         <div className="flex gap-2 px-3 py-2">
                           <span className="shrink-0">🟡</span>
-                          <span><strong>Nível 2 (Dependente) — Entre 17 e 40% de acerto:</strong> O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.</span>
+                          <span><strong>Nível 2 (Dependente) — 1 a n-1 acertos:</strong> O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.</span>
                         </div>
                         <div className="flex gap-2 px-3 py-2">
                           <span className="shrink-0">🟢</span>
-                          <span><strong>Nível 3 (Independente) — Entre 53 e 80% de acerto:</strong> O colaborador possui autonomia operacional, sendo capaz de executar o procedimento nos padrões de qualidade e tempo esperados.</span>
-                        </div>
-                        <div className="flex gap-2 px-3 py-2">
-                          <span className="shrink-0">🔵</span>
-                          <span><strong>Nível 4 (Interdependente) — 100% de acertos:</strong> O colaborador demonstra excelência técnica e domínio perfeito do padrão, além de uma visão sistêmica do impacto do seu trabalho no processo. Deve ser avaliado como um possível multiplicador para orientar a equipe.</span>
+                          <span><strong>Nível 3 (Independente) — 100% de acertos:</strong> O colaborador executa o procedimento nos padrões de qualidade e tempo esperados, com plena autonomia operacional.</span>
                         </div>
                       </div>
                     </div>
@@ -661,7 +627,6 @@ function NovaAvaliacaoPageContent() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Colaborador</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Nível Desejado</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Respostas</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Eficaz?</th>
                 </tr>
@@ -675,7 +640,6 @@ function NovaAvaliacaoPageContent() {
                   return (
                     <tr key={i} className="border-b border-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-800">{c.employee_name}</td>
-                      <td className="px-4 py-3 text-gray-600">{LEVEL_LABELS[c.desired_level]}</td>
                       <td className="px-4 py-3">
                         <span className="text-green-600 font-medium">{conf}✓</span>
                         {' · '}

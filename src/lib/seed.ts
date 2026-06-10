@@ -245,12 +245,12 @@ export async function seedDatabase(db: DbClient): Promise<void> {
     const emp1 = await getEmployeeId('ANTONIO DIEGO DELFINO NUNES');
     const achieved1 = calculateAchievedLevel(4, 2);
     const pct1 = 0.5;
-    const gap1 = calculateGap('INTERDEPENDENTE', achieved1, pct1);
+    const gap1 = calculateGap('INDEPENDENTE', achieved1, pct1);
     const c1 = (await db.run(
       `INSERT INTO eval_collaborators
          (evaluation_id, employee_id, employee_name, desired_level, achieved_level, total_questions, correct_answers, percentage, gap)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ev1, emp1, 'ANTONIO DIEGO DELFINO NUNES', 'INTERDEPENDENTE', achieved1, 4, 2, pct1, gap1]
+      [ev1, emp1, 'ANTONIO DIEGO DELFINO NUNES', 'INDEPENDENTE', achieved1, 4, 2, pct1, gap1]
     )).lastInsertRowid;
     const qs1 = await db.all<{ question_id: number; text: string }>(
       'SELECT tq.question_id, q.text FROM training_questions tq JOIN questions q ON q.id = tq.question_id WHERE tq.training_id = ?',

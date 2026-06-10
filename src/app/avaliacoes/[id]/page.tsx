@@ -8,8 +8,7 @@ import { levelLabel, metDesiredLevel, type SkillLevel } from '@/lib/ranges';
 const LEVEL_BADGE: Record<string, string> = {
   REATIVO: 'bg-red-100 text-red-700 border-red-200',
   DEPENDENTE: 'bg-brand-100 text-brand-700 border-brand-200',
-  INDEPENDENTE: 'bg-blue-100 text-blue-700 border-blue-200',
-  INTERDEPENDENTE: 'bg-green-100 text-green-700 border-green-200',
+  INDEPENDENTE: 'bg-green-100 text-green-700 border-green-200',
 };
 
 interface Answer {
@@ -156,7 +155,6 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Colaborador</th>
-                <th className="text-center px-4 py-3 text-gray-500 font-medium">Nível Desejado</th>
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">Nível Alcançado</th>
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">Questões</th>
                 <th className="text-center px-4 py-3 text-gray-500 font-medium">% Acerto</th>
@@ -175,11 +173,6 @@ export default function EvaluationDetailPage({ params }: { params: { id: string 
                     <td className="px-4 py-3">
                       <p className="font-medium text-gray-800">{c.employee_name}</p>
                       {c.position && <p className="text-xs text-gray-400">{c.position}</p>}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${LEVEL_BADGE[c.desired_level] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {levelLabel(c.desired_level)}
-                      </span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${LEVEL_BADGE[c.achieved_level] ?? 'bg-gray-100 text-gray-600'}`}>

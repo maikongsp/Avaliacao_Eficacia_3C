@@ -11,17 +11,15 @@ import { levelLabel } from '@/lib/ranges';
 import { cn } from '@/lib/utils';
 
 const LEVEL_COLORS: Record<string, string> = {
-  REATIVO:         '#AA272F',
-  DEPENDENTE:      '#FDC82F',
-  INDEPENDENTE:    '#427730',
-  INTERDEPENDENTE: '#2D5E1E',
+  REATIVO:      '#AA272F',
+  DEPENDENTE:   '#FDC82F',
+  INDEPENDENTE: '#427730',
 };
 
 const LEVEL_LEGEND = [
-  { emoji: '🔴', key: 'REATIVO',         label: 'Nível 1 — Reativo',         range: '0% de acertos',          color: 'border-red-200 bg-red-50',    text: 'text-red-800',    desc: 'O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.' },
-  { emoji: '🟡', key: 'DEPENDENTE',      label: 'Nível 2 — Dependente',      range: 'Entre 17 e 40% de acerto', color: 'border-yellow-200 bg-yellow-50', text: 'text-yellow-800', desc: 'O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.' },
-  { emoji: '🟢', key: 'INDEPENDENTE',    label: 'Nível 3 — Independente',    range: 'Entre 53 e 80% de acerto', color: 'border-green-200 bg-green-50',  text: 'text-green-800',  desc: 'O colaborador possui autonomia operacional, sendo capaz de executar o procedimento nos padrões de qualidade e tempo esperados.' },
-  { emoji: '🔵', key: 'INTERDEPENDENTE', label: 'Nível 4 — Interdependente', range: '100% de acertos',          color: 'border-blue-200 bg-blue-50',   text: 'text-blue-800',   desc: 'O colaborador demonstra excelência técnica e domínio perfeito do padrão, além de uma visão sistêmica do impacto do seu trabalho no processo. Deve ser avaliado como um possível multiplicador para orientar a equipe.' },
+  { emoji: '🔴', key: 'REATIVO',      label: 'Nível 1 — Reativo',      range: '0 acertos (0%)',                      color: 'border-red-200 bg-red-50',      text: 'text-red-800',    desc: 'O colaborador não demonstra a execução segura das etapas do procedimento padrão ou das diretrizes de segurança da tarefa. Necessita de supervisão constante e instruções detalhadas para qualquer execução.' },
+  { emoji: '🟡', key: 'DEPENDENTE',   label: 'Nível 2 — Dependente',   range: '1 a n-1 acertos (abaixo de 100%)',    color: 'border-yellow-200 bg-yellow-50', text: 'text-yellow-800', desc: 'O colaborador apresenta desempenho parcial, executando apenas partes do processo com desvios técnicos ou de segurança. Precisa de suporte e supervisão para executar com confiança e precisão.' },
+  { emoji: '🟢', key: 'INDEPENDENTE', label: 'Nível 3 — Independente', range: '100% de acertos (todos os acertos)', color: 'border-green-200 bg-green-50',   text: 'text-green-800',  desc: 'O colaborador executa o procedimento nos padrões de qualidade e tempo esperados, com plena autonomia operacional. Pode ser avaliado como possível multiplicador para orientar a equipe.' },
 ];
 
 interface DashboardData {
